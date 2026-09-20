@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CHALLENGES, STEP1_STORAGE_KEY } from "@/lib/challenges";
+import { pastelClass } from "@/lib/theme";
 
 const MAX_SELECTIONS = 2;
 const TOTAL_STEPS = 3;
@@ -34,11 +35,8 @@ export default function FellowStepOne() {
   }
 
   return (
-    <main className="flex min-h-dvh flex-1 flex-col bg-zinc-50 px-6 py-8 dark:bg-black">
-      <Link
-        href="/"
-        className="text-sm font-medium text-zinc-500 dark:text-zinc-400"
-      >
+    <main className="flex flex-1 flex-col px-6 py-8">
+      <Link href="/" className="text-sm font-semibold text-navy/70">
         ← Back
       </Link>
 
@@ -48,27 +46,25 @@ export default function FellowStepOne() {
             <div
               key={step}
               className={`h-1.5 flex-1 rounded-full ${
-                step <= CURRENT_STEP
-                  ? "bg-zinc-900 dark:bg-zinc-50"
-                  : "bg-zinc-200 dark:bg-zinc-800"
+                step <= CURRENT_STEP ? "bg-gold" : "bg-navy/10"
               }`}
             />
           ))}
         </div>
-        <p className="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm font-semibold text-navy/60">
           Step {CURRENT_STEP} of {TOTAL_STEPS}
         </p>
       </div>
 
       <div className="mt-8 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy">
           What&apos;s happening in your classroom?
         </h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">Pick up to 2.</p>
+        <p className="mt-2 text-navy/70">Pick up to 2.</p>
       </div>
 
       <div className="mt-6 flex flex-1 flex-col gap-2.5">
-        {CHALLENGES.map((challenge) => {
+        {CHALLENGES.map((challenge, index) => {
           const isSelected = selected.includes(challenge.id);
           const isDisabled = atMax && !isSelected;
 
@@ -79,12 +75,12 @@ export default function FellowStepOne() {
               onClick={() => toggle(challenge.id)}
               disabled={isDisabled}
               aria-pressed={isSelected}
-              className={`rounded-2xl border-2 px-5 py-3.5 text-left text-base font-semibold transition active:scale-[0.98] ${
+              className={`rounded-2xl border-2 px-5 py-3.5 text-left text-base font-bold transition active:scale-[0.98] ${
                 isSelected
-                  ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                  ? "border-navy bg-gold text-navy"
                   : isDisabled
-                    ? "cursor-not-allowed border-zinc-200 bg-white text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-600"
-                    : "border-zinc-200 bg-white text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+                    ? `border-transparent opacity-50 ${pastelClass(index)} text-navy/50`
+                    : `border-transparent ${pastelClass(index)} text-navy`
               }`}
             >
               {challenge.label}
@@ -97,7 +93,7 @@ export default function FellowStepOne() {
         type="button"
         onClick={handleNext}
         disabled={selected.length === 0}
-        className="mt-8 w-full rounded-2xl bg-zinc-900 px-6 py-4 text-lg font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-zinc-300 dark:bg-zinc-50 dark:text-zinc-900 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600"
+        className="mt-8 w-full rounded-2xl bg-gold px-6 py-4 text-lg font-bold text-navy shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-navy/10 disabled:text-navy/40 disabled:shadow-none"
       >
         Next
       </button>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { STEP1_STORAGE_KEY } from "@/lib/challenges";
+import { insertSubmission } from "@/lib/submissions";
+import { pastelClass } from "@/lib/theme";
 
 const TOTAL_STEPS = 3;
 const CURRENT_STEP = 3;
@@ -32,6 +34,8 @@ export default function FellowStepThree() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [challengeIds, setChallengeIds] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
   useEffect(() => {
     try {
@@ -52,27 +56,40 @@ export default function FellowStepThree() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isValid) return;
-    // TODO: wire to database once storage is set up.
-    const submission = { ...form, challengeIds };
-    void submission;
-    setSubmitted(true);
+    if (!isValid || isSubmitting) return;
+    setIsSubmitting(true);
+    setSubmitError(false);
+    try {
+      await insertSubmission({
+        path: "fellow",
+        name: form.name,
+        email: form.email,
+        phone: form.phone || null,
+        challenges: challengeIds,
+        next_step: form.helpChoice,
+      });
+      setSubmitted(true);
+    } catch {
+      setSubmitError(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (submitted) {
     return (
-      <main className="flex min-h-dvh flex-1 flex-col items-center justify-center gap-3 bg-zinc-50 px-6 text-center dark:bg-black">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <main className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy">
           Thanks!
         </h1>
-        <p className="max-w-sm text-zinc-600 dark:text-zinc-400">
+        <p className="max-w-sm text-navy/70">
           We&apos;ll follow up with resources for what you picked.
         </p>
         <Link
           href="/"
-          className="mt-4 text-sm font-medium text-zinc-900 underline dark:text-zinc-50"
+          className="mt-4 text-sm font-semibold text-navy underline"
         >
           Back to start
         </Link>
@@ -81,11 +98,8 @@ export default function FellowStepThree() {
   }
 
   return (
-    <main className="flex min-h-dvh flex-1 flex-col bg-zinc-50 px-6 py-8 dark:bg-black">
-      <Link
-        href="/fellow/2"
-        className="text-sm font-medium text-zinc-500 dark:text-zinc-400"
-      >
+    <main className="flex flex-1 flex-col px-6 py-8">
+      <Link href="/fellow/2" className="text-sm font-semibold text-navy/70">
         ← Back
       </Link>
 
@@ -95,23 +109,21 @@ export default function FellowStepThree() {
             <div
               key={step}
               className={`h-1.5 flex-1 rounded-full ${
-                step <= CURRENT_STEP
-                  ? "bg-zinc-900 dark:bg-zinc-50"
-                  : "bg-zinc-200 dark:bg-zinc-800"
+                step <= CURRENT_STEP ? "bg-gold" : "bg-navy/10"
               }`}
             />
           ))}
         </div>
-        <p className="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm font-semibold text-navy/60">
           Step {CURRENT_STEP} of {TOTAL_STEPS}
         </p>
       </div>
 
       <div className="mt-8 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy">
           Just a few details
         </h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-navy/70">
           So we can follow up with the right resources.
         </p>
       </div>
@@ -147,11 +159,11 @@ export default function FellowStepThree() {
         </Field>
 
         <fieldset>
-          <legend className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <legend className="text-sm font-semibold text-navy">
             What would help most right now?
           </legend>
           <div className="mt-2 flex flex-col gap-2.5">
-            {HELP_OPTIONS.map((option) => {
+            {HELP_OPTIONS.map((option, index) => {
               const isSelected = form.helpChoice === option;
               return (
                 <button
@@ -159,10 +171,10 @@ export default function FellowStepThree() {
                   type="button"
                   onClick={() => update("helpChoice", option)}
                   aria-pressed={isSelected}
-                  className={`rounded-2xl border-2 px-5 py-3.5 text-left text-base font-semibold transition active:scale-[0.98] ${
+                  className={`rounded-2xl border-2 px-5 py-3.5 text-left text-base font-bold transition active:scale-[0.98] ${
                     isSelected
-                      ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
-                      : "border-zinc-200 bg-white text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+                      ? "border-navy bg-gold text-navy"
+                      : `border-transparent ${pastelClass(index)} text-navy`
                   }`}
                 >
                   {option}
@@ -172,12 +184,18 @@ export default function FellowStepThree() {
           </div>
         </fieldset>
 
+        {submitError && (
+          <p className="text-sm font-medium text-red-600">
+            Something went wrong, try again.
+          </p>
+        )}
+
         <button
           type="submit"
-          disabled={!isValid}
-          className="mt-2 w-full rounded-2xl bg-zinc-900 px-6 py-4 text-lg font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-zinc-300 dark:bg-zinc-50 dark:text-zinc-900 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600"
+          disabled={!isValid || isSubmitting}
+          className="mt-2 w-full rounded-2xl bg-gold px-6 py-4 text-lg font-bold text-navy shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-navy/10 disabled:text-navy/40 disabled:shadow-none"
         >
-          Submit
+          {isSubmitting ? "Submitting…" : "Submit"}
         </button>
       </form>
     </main>
@@ -185,7 +203,7 @@ export default function FellowStepThree() {
 }
 
 const inputClass =
-  "rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50";
+  "rounded-xl border-2 border-navy/15 bg-white px-4 py-3 text-base text-navy outline-none transition focus:border-navy";
 
 function Field({
   label,
@@ -198,7 +216,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <span className="text-sm font-semibold text-navy">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </span>
