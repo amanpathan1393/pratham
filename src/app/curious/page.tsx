@@ -2,20 +2,27 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ComprehensionActivity } from "@/components/ComprehensionActivity";
+import { TasteExperience } from "@/components/TasteExperience";
 import { insertSubmission } from "@/lib/submissions";
+import { Honeypot } from "@/components/Honeypot";
 
 export default function CuriousPage() {
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [tasteComplete, setTasteComplete] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (email.trim() === "" || isSubmitting) return;
+    if (honeypot.trim() !== "") {
+      // Likely a bot: pretend success without writing to the database.
+      setEmailSubmitted(true);
+      return;
+    }
     setIsSubmitting(true);
     setSubmitError(false);
     try {
@@ -30,32 +37,35 @@ export default function CuriousPage() {
 
   return (
     <main className="flex flex-1 flex-col px-6 py-8">
-      <Link href="/" className="text-sm font-semibold text-navy/70">
+      <Link
+        href="/"
+        className="inline-block py-3.5 text-sm font-semibold text-secondary"
+      >
         ← Back
       </Link>
 
       <div className="mt-8 text-center">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy">
+        <h1 className="text-2xl font-bold tracking-tight text-primary">
           See it in action
         </h1>
-        <p className="mt-2 text-navy/70">
+        <p className="mt-2 text-secondary">
           Try this quick example from a Step by Step English lesson.
         </p>
       </div>
 
       <div className="mt-6">
-        <ComprehensionActivity onCorrect={() => setIsCorrect(true)} />
+        <TasteExperience onComplete={() => setTasteComplete(true)} />
       </div>
 
-      {isCorrect && (
-        <div className="mt-6 rounded-2xl bg-pastel-lavender p-5 text-center">
-          <h2 className="font-heading text-lg font-bold text-navy">
+      {tasteComplete && (
+        <div className="mt-6 rounded-lg border-[1.5px] border-border p-5 text-center">
+          <h2 className="text-lg font-bold text-primary">
             Want to see how this could fit your classroom?
           </h2>
 
           <Link
             href="/fellow"
-            className="mt-4 flex w-full items-center justify-center rounded-2xl bg-gold px-6 py-4 text-lg font-bold text-navy shadow-sm transition active:scale-[0.98]"
+            className="mt-4 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
           >
             Yes, I&apos;m a Fellow
           </Link>
@@ -64,7 +74,7 @@ export default function CuriousPage() {
             <button
               type="button"
               onClick={() => setShowEmailForm(true)}
-              className="mt-3 text-sm font-semibold text-navy/70 underline"
+              className="mt-3 inline-block py-3.5 text-sm font-semibold text-secondary underline"
             >
               Just leave your email
             </button>
@@ -75,6 +85,7 @@ export default function CuriousPage() {
               onSubmit={handleEmailSubmit}
               className="mt-4 flex flex-col gap-3"
             >
+              <Honeypot value={honeypot} onChange={setHoneypot} />
               <input
                 type="email"
                 required
@@ -82,12 +93,12 @@ export default function CuriousPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-xl border-2 border-navy/15 bg-white px-4 py-3 text-base text-navy outline-none transition focus:border-navy"
+                className="h-14 rounded-lg border-[1.5px] border-border bg-transparent px-4 text-base text-primary outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
               />
               <button
                 type="submit"
                 disabled={email.trim() === "" || isSubmitting}
-                className="w-full rounded-2xl border-2 border-navy px-6 py-3 text-base font-bold text-navy transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border-navy/20 disabled:text-navy/40"
+                className="flex h-14 w-full items-center justify-center rounded-lg border-[1.5px] border-teal text-base font-bold text-teal transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border-border disabled:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
               >
                 {isSubmitting ? "Sending…" : "Send"}
               </button>
@@ -100,7 +111,7 @@ export default function CuriousPage() {
           )}
 
           {emailSubmitted && (
-            <p className="mt-4 text-sm text-navy/70">
+            <p className="mt-4 text-sm text-secondary">
               Thanks — we&apos;ll be in touch.
             </p>
           )}

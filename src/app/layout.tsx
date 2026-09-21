@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Baloo_2 } from "next/font/google";
+import { Noto_Sans } from "next/font/google";
+import Image from "next/image";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const notoSans = Noto_Sans({
+  variable: "--font-noto-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const baloo = Baloo_2({
-  variable: "--font-baloo",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -25,22 +16,27 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${baloo.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col bg-page text-navy">
-        <header className="bg-navy px-6 py-2.5 text-center">
-          <span className="font-heading text-base font-bold tracking-tight text-white">
-            Step by Step <span className="text-gold">English</span>
-          </span>
+    <html lang="en" className={`${notoSans.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col">
+        <header className="flex items-center justify-center gap-6 border-b-[1.5px] border-border px-6 py-3">
+          <Image
+            src="/images/pratham-logo.png"
+            alt="Pratham"
+            width={144}
+            height={32}
+            className="h-8 w-auto"
+            priority
+          />
+          <Image
+            src="/images/pradigi-logo.webp"
+            alt="PraDigi"
+            width={92}
+            height={32}
+            className="h-8 w-auto"
+            priority
+          />
         </header>
         <div className="flex flex-1 flex-col">{children}</div>
-        <footer className="bg-navy px-6 py-2.5 text-center">
-          <span className="text-xs font-medium text-white/70">
-            A Pratham / PraDigi programme
-          </span>
-        </footer>
       </body>
     </html>
   );

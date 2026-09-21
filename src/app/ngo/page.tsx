@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { insertSubmission } from "@/lib/submissions";
-import { pastelClass } from "@/lib/theme";
+import { listRowClass } from "@/lib/theme";
+import { Honeypot } from "@/components/Honeypot";
 
 const CHECKLIST = [
   "Ready-to-use learning content",
@@ -55,6 +56,7 @@ export default function NgoPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
 
   const isValid =
     form.orgName.trim() !== "" &&
@@ -78,6 +80,11 @@ export default function NgoPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isValid || isSubmitting) return;
+    if (honeypot.trim() !== "") {
+      // Likely a bot: pretend success without writing to the database.
+      setSubmitted(true);
+      return;
+    }
     setIsSubmitting(true);
     setSubmitError(false);
     const contact = form.contact.trim();
@@ -106,15 +113,15 @@ export default function NgoPage() {
   if (submitted) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy">
+        <h1 className="text-2xl font-bold tracking-tight text-primary">
           Thanks!
         </h1>
-        <p className="max-w-sm text-navy/70">
+        <p className="max-w-sm text-secondary">
           We&apos;ll be in touch about partnering with your organisation.
         </p>
         <Link
           href="/"
-          className="mt-4 text-sm font-semibold text-navy underline"
+          className="mt-4 inline-block py-3.5 text-sm font-semibold text-teal underline"
         >
           Back to start
         </Link>
@@ -124,37 +131,40 @@ export default function NgoPage() {
 
   return (
     <main className="flex flex-1 flex-col px-6 py-8">
-      <Link href="/" className="text-sm font-semibold text-navy/70">
+      <Link
+        href="/"
+        className="inline-block py-3.5 text-sm font-semibold text-secondary"
+      >
         ← Back
       </Link>
 
       <div className="mt-6">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy">
+        <h1 className="text-2xl font-bold tracking-tight text-primary">
           Partner with us
         </h1>
-        <p className="mt-2 leading-relaxed text-navy/70">
+        <p className="mt-2 leading-relaxed text-secondary">
           Step by Step English gives your team everything needed to run a
           structured English programme, without building it from scratch.
         </p>
 
-        <ul className="mt-4 flex flex-col gap-2.5">
-          {CHECKLIST.map((item, index) => (
+        <ul className="mt-4 border-b-[1.5px] border-border">
+          {CHECKLIST.map((item) => (
             <li
               key={item}
-              className={`flex items-center gap-3 rounded-2xl ${pastelClass(
-                index,
-              )} px-4 py-3.5`}
+              className="flex min-h-14 items-center gap-3 border-t-[1.5px] border-border px-1 py-4"
             >
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy">
-                ✓
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal">
+                <CheckIcon />
               </span>
-              <span className="font-semibold text-navy">{item}</span>
+              <span className="font-semibold text-primary">{item}</span>
             </li>
           ))}
         </ul>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+        <Honeypot value={honeypot} onChange={setHoneypot} />
+
         <Field label="Organisation name" required>
           <input
             type="text"
@@ -204,34 +214,32 @@ export default function NgoPage() {
         </Field>
 
         <fieldset>
-          <legend className="text-sm font-semibold text-navy">
+          <legend className="text-sm font-semibold text-primary">
             Where you&apos;re hoping to use the programme
           </legend>
-          <div className="mt-2 flex flex-col gap-2.5">
-            {SETTING_OPTIONS.map((option, index) => (
+          <div className="mt-2 flex flex-col border-b-[1.5px] border-border">
+            {SETTING_OPTIONS.map((option) => (
               <Checkbox
                 key={option}
                 label={option}
                 checked={form.settings.includes(option)}
                 onChange={() => toggleInGroup("settings", option)}
-                colorClass={pastelClass(index)}
               />
             ))}
           </div>
         </fieldset>
 
         <fieldset>
-          <legend className="text-sm font-semibold text-navy">
+          <legend className="text-sm font-semibold text-primary">
             What you&apos;d like to explore
           </legend>
-          <div className="mt-2 flex flex-col gap-2.5">
-            {INTEREST_OPTIONS.map((option, index) => (
+          <div className="mt-2 flex flex-col border-b-[1.5px] border-border">
+            {INTEREST_OPTIONS.map((option) => (
               <Checkbox
                 key={option}
                 label={option}
                 checked={form.interests.includes(option)}
                 onChange={() => toggleInGroup("interests", option)}
-                colorClass={pastelClass(index)}
               />
             ))}
           </div>
@@ -256,7 +264,7 @@ export default function NgoPage() {
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="mt-2 w-full rounded-2xl bg-gold px-6 py-4 text-lg font-bold text-navy shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-navy/10 disabled:text-navy/40 disabled:shadow-none"
+          className="mt-2 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] disabled:bg-inactive disabled:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
         >
           {isSubmitting ? "Submitting…" : "Submit"}
         </button>
@@ -266,7 +274,7 @@ export default function NgoPage() {
 }
 
 const inputClass =
-  "rounded-xl border-2 border-navy/15 bg-white px-4 py-3 text-base text-navy outline-none transition focus:border-navy";
+  "h-14 rounded-lg border-[1.5px] border-border bg-transparent px-4 text-base text-primary outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2";
 
 function Field({
   label,
@@ -279,7 +287,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-sm font-semibold text-navy">
+      <span className="text-sm font-semibold text-primary">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </span>
@@ -292,42 +300,40 @@ function Checkbox({
   label,
   checked,
   onChange,
-  colorClass,
 }: {
   label: string;
   checked: boolean;
   onChange: () => void;
-  colorClass: string;
 }) {
   return (
     <button
       type="button"
       onClick={onChange}
       aria-pressed={checked}
-      className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-left font-bold transition active:scale-[0.98] ${
-        checked
-          ? "border-navy bg-gold text-navy"
-          : `border-transparent ${colorClass} text-navy`
-      }`}
+      className={listRowClass({ selected: checked })}
     >
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 ${
-          checked ? "border-navy bg-navy" : "border-navy/30 bg-white"
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] ${
+          checked ? "border-teal bg-teal" : "border-border"
         }`}
       >
-        {checked && (
-          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
-            <path
-              d="M3 8l3.5 3.5L13 5"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
+        {checked && <CheckIcon />}
       </span>
       <span>{label}</span>
     </button>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
+      <path
+        d="M3 8l3.5 3.5L13 5"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

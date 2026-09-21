@@ -9,8 +9,8 @@ import {
   STEP1_STORAGE_KEY,
   type Challenge,
 } from "@/lib/challenges";
-import { ComprehensionActivity } from "@/components/ComprehensionActivity";
-import { pastelClass } from "@/lib/theme";
+import { TasteExperience } from "@/components/TasteExperience";
+import { StepDots } from "@/components/StepDots";
 
 const TOTAL_STEPS = 3;
 const CURRENT_STEP = 2;
@@ -27,7 +27,7 @@ export default function FellowStepTwo() {
     loaded: boolean;
     matchedChallenges: Challenge[];
   }>({ loaded: false, matchedChallenges: [] });
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [tasteComplete, setTasteComplete] = useState(false);
   const { loaded, matchedChallenges } = step1Selection;
 
   useEffect(() => {
@@ -48,66 +48,60 @@ export default function FellowStepTwo() {
   }, []);
 
   function handleNext() {
-    if (!isCorrect) return;
+    if (!tasteComplete) return;
     router.push("/fellow/3");
   }
 
   return (
     <main className="flex flex-1 flex-col px-6 py-8">
-      <Link href="/fellow" className="text-sm font-semibold text-navy/70">
+      <Link
+        href="/fellow"
+        className="inline-block py-3.5 text-sm font-semibold text-secondary"
+      >
         ← Back
       </Link>
 
-      <div className="mt-6">
-        <div className="flex gap-2">
-          {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((step) => (
-            <div
-              key={step}
-              className={`h-1.5 flex-1 rounded-full ${
-                step <= CURRENT_STEP ? "bg-gold" : "bg-navy/10"
-              }`}
-            />
-          ))}
-        </div>
-        <p className="mt-2 text-sm font-semibold text-navy/60">
+      <div className="mt-6 flex items-center gap-3">
+        <StepDots total={TOTAL_STEPS} current={CURRENT_STEP} />
+        <p className="text-sm font-semibold text-secondary">
           Step {CURRENT_STEP} of {TOTAL_STEPS}
         </p>
       </div>
 
       <div className="mt-8 text-center">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy">
+        <h1 className="text-2xl font-bold tracking-tight text-primary">
           How Step by Step English helps
         </h1>
         {SHOW_DRAFT_TAG && (
-          <span className="mt-3 inline-block rounded-full bg-gold px-3 py-1 text-xs font-bold text-navy">
+          <span className="mt-3 inline-block rounded-full bg-inactive px-3 py-1 text-xs font-bold text-secondary">
             Draft copy — pending review
           </span>
         )}
       </div>
 
       {loaded && matchedChallenges.length === 0 ? (
-        <div className="mt-6 rounded-2xl bg-pastel-sky p-5 text-center">
-          <p className="text-navy/70">
+        <div className="mt-6 rounded-lg border-[1.5px] border-border p-5 text-center">
+          <p className="text-secondary">
             We couldn&apos;t find your answers from step 1.
           </p>
           <Link
             href="/fellow"
-            className="mt-2 inline-block text-sm font-semibold text-navy underline"
+            className="mt-2 inline-block py-3.5 text-sm font-semibold text-teal underline"
           >
             Start over
           </Link>
         </div>
       ) : (
         <div className="mt-6 flex flex-col gap-3">
-          {matchedChallenges.map((challenge, index) => (
+          {matchedChallenges.map((challenge) => (
             <div
               key={challenge.id}
-              className={`rounded-2xl ${pastelClass(index)} p-5`}
+              className="rounded-lg border-[1.5px] border-border p-5"
             >
-              <p className="text-sm font-bold text-navy/60">
+              <p className="text-sm font-semibold text-secondary">
                 {challenge.label}
               </p>
-              <p className="mt-2 leading-relaxed text-navy">
+              <p className="mt-2 leading-relaxed text-primary">
                 {challenge.solution}
               </p>
             </div>
@@ -116,25 +110,25 @@ export default function FellowStepTwo() {
       )}
 
       <div className="mt-8">
-        <ComprehensionActivity onCorrect={() => setIsCorrect(true)} />
+        <TasteExperience onComplete={() => setTasteComplete(true)} />
       </div>
 
-      {isCorrect && (
-        <div className="mt-6 rounded-2xl bg-pastel-lavender p-5 text-center">
-          <p className="leading-relaxed text-navy">
+      {tasteComplete && (
+        <div className="mt-6 rounded-lg border-[1.5px] border-border p-5 text-center">
+          <p className="leading-relaxed text-primary">
             One pilot took learners with strong reading skills from{" "}
             <span className="font-bold">12% to 80%</span>, and cut the lowest
             reading band from <span className="font-bold">63% to 7%</span>.
           </p>
-          <p className="mt-1 text-sm text-navy/60">(539 learners)</p>
+          <p className="mt-1 text-sm text-secondary">(539 learners)</p>
         </div>
       )}
 
       <button
         type="button"
         onClick={handleNext}
-        disabled={!isCorrect}
-        className="mt-8 w-full rounded-2xl bg-gold px-6 py-4 text-lg font-bold text-navy shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-navy/10 disabled:text-navy/40 disabled:shadow-none"
+        disabled={!tasteComplete}
+        className="mt-8 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] disabled:bg-inactive disabled:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
       >
         Next
       </button>
