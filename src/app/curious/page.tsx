@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TasteExperience } from "@/components/TasteExperience";
 import { insertSubmission } from "@/lib/submissions";
 import { Honeypot } from "@/components/Honeypot";
+import { ctaClass } from "@/lib/theme";
 
 export default function CuriousPage() {
   const [tasteComplete, setTasteComplete] = useState(false);
@@ -44,7 +45,7 @@ export default function CuriousPage() {
         ← Back
       </Link>
 
-      <div className="mt-8 text-center">
+      <div className="mt-8 animate-fade-in-up text-center">
         <h1 className="text-2xl font-bold tracking-tight text-primary">
           See it in action
         </h1>
@@ -53,20 +54,17 @@ export default function CuriousPage() {
         </p>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
         <TasteExperience onComplete={() => setTasteComplete(true)} />
       </div>
 
       {tasteComplete && (
-        <div className="mt-6 rounded-lg border-[1.5px] border-border p-5 text-center">
+        <div className="mt-6 animate-fade-in-up rounded-lg border-[1.5px] border-gold/40 bg-gold/5 p-5 text-center">
           <h2 className="text-lg font-bold text-primary">
             Want to see how this could fit your classroom?
           </h2>
 
-          <Link
-            href="/fellow"
-            className="mt-4 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
-          >
+          <Link href="/fellow" className={`mt-4 ${ctaClass}`}>
             Yes, I&apos;m a Fellow
           </Link>
 

@@ -11,6 +11,7 @@ import {
 } from "@/lib/challenges";
 import { TasteExperience } from "@/components/TasteExperience";
 import { StepDots } from "@/components/StepDots";
+import { ctaClass } from "@/lib/theme";
 
 const TOTAL_STEPS = 3;
 const CURRENT_STEP = 2;
@@ -68,7 +69,7 @@ export default function FellowStepTwo() {
         </p>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-8 animate-fade-in-up text-center">
         <h1 className="text-2xl font-bold tracking-tight text-primary">
           How Step by Step English helps
         </h1>
@@ -92,11 +93,14 @@ export default function FellowStepTwo() {
           </Link>
         </div>
       ) : (
-        <div className="mt-6 flex flex-col gap-3">
+        <div
+          className="mt-6 flex animate-fade-in-up flex-col gap-3"
+          style={{ animationDelay: "100ms" }}
+        >
           {matchedChallenges.map((challenge) => (
             <div
               key={challenge.id}
-              className="rounded-lg border-[1.5px] border-border p-5"
+              className="rounded-lg border-[1.5px] border-border p-5 transition-shadow hover:shadow-md"
             >
               <p className="text-sm font-semibold text-secondary">
                 {challenge.label}
@@ -109,12 +113,12 @@ export default function FellowStepTwo() {
         </div>
       )}
 
-      <div className="mt-8">
+      <div className="mt-8 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
         <TasteExperience onComplete={() => setTasteComplete(true)} />
       </div>
 
       {tasteComplete && (
-        <div className="mt-6 rounded-lg border-[1.5px] border-border p-5 text-center">
+        <div className="mt-6 animate-fade-in-up rounded-lg border-[1.5px] border-gold/40 bg-gold/5 p-5 text-center">
           <p className="leading-relaxed text-primary">
             One pilot took learners with strong reading skills from{" "}
             <span className="font-bold">12% to 80%</span>, and cut the lowest
@@ -128,7 +132,7 @@ export default function FellowStepTwo() {
         type="button"
         onClick={handleNext}
         disabled={!tasteComplete}
-        className="mt-8 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] disabled:bg-inactive disabled:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
+        className={`mt-8 ${ctaClass}`}
       >
         Next
       </button>

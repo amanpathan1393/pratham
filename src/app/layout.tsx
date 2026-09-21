@@ -18,23 +18,25 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${notoSans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        <header className="flex items-center justify-center gap-6 border-b-[1.5px] border-border px-6 py-3">
-          <Image
-            src="/images/pratham-logo.png"
-            alt="Pratham"
-            width={144}
-            height={32}
-            className="h-8 w-auto"
-            priority
-          />
-          <Image
-            src="/images/pradigi-logo.webp"
-            alt="PraDigi"
-            width={92}
-            height={32}
-            className="h-8 w-auto"
-            priority
-          />
+        <header className="border-b-[3px] border-gold bg-cream/95 shadow-sm backdrop-blur">
+          <div className="flex items-center justify-center gap-6 px-6 py-3">
+            <Image
+              src="/images/pratham-logo.png"
+              alt="Pratham"
+              width={144}
+              height={32}
+              className="h-8 w-auto"
+              priority
+            />
+            <Image
+              src="/images/pradigi-logo.webp"
+              alt="PraDigi"
+              width={92}
+              height={32}
+              className="h-8 w-auto"
+              priority
+            />
+          </div>
         </header>
         <div className="flex flex-1 flex-col">{children}</div>
       </body>

@@ -4,8 +4,12 @@ export function StepDots({ total, current }: { total: number; current: number })
       {Array.from({ length: total }, (_, i) => i + 1).map((step) => (
         <span
           key={step}
-          className={`h-2.5 w-2.5 rounded-full ${
-            step <= current ? "bg-teal" : "bg-inactive"
+          className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
+            step === current
+              ? "scale-125 bg-teal"
+              : step < current
+                ? "bg-teal"
+                : "bg-inactive"
           }`}
         />
       ))}

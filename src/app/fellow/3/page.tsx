@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { STEP1_STORAGE_KEY } from "@/lib/challenges";
 import { insertSubmission } from "@/lib/submissions";
-import { listRowClass } from "@/lib/theme";
+import { ctaClass, listRowClass } from "@/lib/theme";
 import { Honeypot } from "@/components/Honeypot";
 import { StepDots } from "@/components/StepDots";
 
@@ -89,7 +89,10 @@ export default function FellowStepThree() {
   if (submitted) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-primary">
+        <span className="animate-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-teal/10 text-teal">
+          <BigCheckIcon />
+        </span>
+        <h1 className="animate-fade-in-up text-2xl font-bold tracking-tight text-primary">
           Thanks!
         </h1>
         <p className="max-w-sm text-secondary">
@@ -121,7 +124,7 @@ export default function FellowStepThree() {
         </p>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-8 animate-fade-in-up text-center">
         <h1 className="text-2xl font-bold tracking-tight text-primary">
           Just a few details
         </h1>
@@ -130,7 +133,11 @@ export default function FellowStepThree() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+      <form
+        onSubmit={handleSubmit}
+        className="mt-8 flex animate-fade-in-up flex-col gap-5"
+        style={{ animationDelay: "100ms" }}
+      >
         <Honeypot value={honeypot} onChange={setHoneypot} />
 
         <Field label="Name" required>
@@ -178,8 +185,8 @@ export default function FellowStepThree() {
                   className={listRowClass({ selected: isSelected })}
                 >
                   <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] ${
-                      isSelected ? "border-teal bg-teal" : "border-border"
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all duration-200 ${
+                      isSelected ? "animate-pop-in border-teal bg-teal" : "border-border"
                     }`}
                   >
                     {isSelected && <CheckIcon />}
@@ -200,7 +207,7 @@ export default function FellowStepThree() {
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="mt-2 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] disabled:bg-inactive disabled:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
+          className={`mt-2 ${ctaClass}`}
         >
           {isSubmitting ? "Submitting…" : "Submit"}
         </button>
@@ -239,6 +246,20 @@ function CheckIcon() {
         d="M3 8l3.5 3.5L13 5"
         stroke="white"
         strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function BigCheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none">
+      <path
+        d="M5 12l4.5 4.5L19 7"
+        stroke="currentColor"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

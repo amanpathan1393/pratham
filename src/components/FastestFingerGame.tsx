@@ -13,6 +13,7 @@ type Status = "playing" | "won" | "timeout";
 export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS);
   const [won, setWon] = useState(false);
+  const [shakeCell, setShakeCell] = useState<string | null>(null);
 
   // Derived rather than its own state: avoids setting it imperatively from
   // inside the timer effect below.
@@ -32,10 +33,18 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
+  useEffect(() => {
+    if (!shakeCell) return;
+    const timer = setTimeout(() => setShakeCell(null), 320);
+    return () => clearTimeout(timer);
+  }, [shakeCell]);
+
   function handleTap(row: string, col: string) {
     if (status !== "playing") return;
     if (row === TARGET_ROW && col === TARGET_COL) {
       setWon(true);
+    } else {
+      setShakeCell(row + col);
     }
   }
 
@@ -77,6 +86,8 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
               const word = row + col;
               const isTarget = row === TARGET_ROW && col === TARGET_COL;
               const showAnswer = isRevealed && isTarget;
+              const isWinningCell = showAnswer && status === "won";
+              const isTimeoutReveal = showAnswer && status === "timeout";
 
               return (
                 <button
@@ -84,16 +95,21 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
                   type="button"
                   onClick={() => handleTap(row, col)}
                   disabled={isRevealed}
-                  className={`flex min-h-11 items-center justify-center gap-1 rounded-md border-[1.5px] text-sm font-semibold transition active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
-                    showAnswer
-                      ? "border-teal bg-teal/10 text-teal"
-                      : isRevealed
-                        ? "border-border text-muted"
-                        : "border-border text-primary"
+                  className={`relative flex min-h-11 items-center justify-center gap-1 rounded-md border-[1.5px] text-sm font-semibold transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
+                    shakeCell === word ? "animate-shake" : ""
+                  } ${
+                    isWinningCell
+                      ? "animate-pop-in border-gold bg-gold/15 text-primary shadow-md"
+                      : isTimeoutReveal
+                        ? "border-teal bg-teal/10 text-teal"
+                        : isRevealed
+                          ? "border-border text-muted"
+                          : "border-border text-primary hover:-translate-y-0.5 hover:border-teal/50 hover:bg-teal/5 hover:shadow-sm"
                   }`}
                 >
                   {word}
                   {showAnswer && <CheckIcon />}
+                  {isWinningCell && <ConfettiBurst />}
                 </button>
               );
             })}
@@ -102,7 +118,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
       </div>
 
       {isRevealed && (
-        <p className="mt-4 text-sm text-secondary">
+        <p className="mt-4 animate-fade-in-up text-sm text-secondary">
           This is a real Module 1 activity. Kids do this every session to
           build word-recognition speed.
         </p>
@@ -123,9 +139,12 @@ function CountdownRing({
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
   const progress = active ? secondsLeft / total : 0;
+  const isUrgent = active && secondsLeft <= 2;
 
   return (
-    <div className="relative h-12 w-12 shrink-0">
+    <div
+      className={`relative h-12 w-12 shrink-0 rounded-full ${isUrgent ? "animate-gentle-pulse" : ""}`}
+    >
       <svg viewBox="0 0 48 48" className="h-12 w-12 -rotate-90">
         <circle
           cx="24"
@@ -140,12 +159,14 @@ function CountdownRing({
           cy="24"
           r={radius}
           fill="none"
-          stroke="#1A7F74"
+          stroke={isUrgent ? "#F2B705" : "#1A7F74"}
           strokeWidth="4"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - progress)}
-          style={{ transition: "stroke-dashoffset 1s linear" }}
+          style={{
+            transition: "stroke-dashoffset 1s linear, stroke 0.3s ease",
+          }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-primary">
@@ -166,5 +187,35 @@ function CheckIcon() {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+const CONFETTI_PIECES = [
+  { tx: "-18px", ty: "-22px", color: "#1A7F74", delay: "0ms" },
+  { tx: "18px", ty: "-24px", color: "#F2B705", delay: "40ms" },
+  { tx: "-24px", ty: "6px", color: "#F2B705", delay: "80ms" },
+  { tx: "24px", ty: "8px", color: "#1A7F74", delay: "20ms" },
+  { tx: "0px", ty: "-30px", color: "#F2B705", delay: "60ms" },
+  { tx: "-10px", ty: "20px", color: "#1A7F74", delay: "100ms" },
+];
+
+function ConfettiBurst() {
+  return (
+    <span className="pointer-events-none absolute inset-0" aria-hidden="true">
+      {CONFETTI_PIECES.map((piece, i) => (
+        <span
+          key={i}
+          className="animate-confetti absolute top-1/2 left-1/2 h-1.5 w-1.5 rounded-full"
+          style={
+            {
+              backgroundColor: piece.color,
+              animationDelay: piece.delay,
+              "--tx": piece.tx,
+              "--ty": piece.ty,
+            } as React.CSSProperties
+          }
+        />
+      ))}
+    </span>
   );
 }

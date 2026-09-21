@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { insertSubmission } from "@/lib/submissions";
-import { listRowClass } from "@/lib/theme";
+import { ctaClass, listRowClass } from "@/lib/theme";
 import { Honeypot } from "@/components/Honeypot";
 
 const CHECKLIST = [
@@ -113,7 +113,10 @@ export default function NgoPage() {
   if (submitted) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-primary">
+        <span className="animate-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-teal/10 text-teal">
+          <BigCheckIcon />
+        </span>
+        <h1 className="animate-fade-in-up text-2xl font-bold tracking-tight text-primary">
           Thanks!
         </h1>
         <p className="max-w-sm text-secondary">
@@ -138,7 +141,7 @@ export default function NgoPage() {
         ← Back
       </Link>
 
-      <div className="mt-6">
+      <div className="mt-6 animate-fade-in-up">
         <h1 className="text-2xl font-bold tracking-tight text-primary">
           Partner with us
         </h1>
@@ -148,10 +151,11 @@ export default function NgoPage() {
         </p>
 
         <ul className="mt-4 border-b-[1.5px] border-border">
-          {CHECKLIST.map((item) => (
+          {CHECKLIST.map((item, index) => (
             <li
               key={item}
-              className="flex min-h-14 items-center gap-3 border-t-[1.5px] border-border px-1 py-4"
+              className="flex min-h-14 animate-fade-in-up items-center gap-3 border-t-[1.5px] border-border px-1 py-4"
+              style={{ animationDelay: `${80 + index * 60}ms` }}
             >
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal">
                 <CheckIcon />
@@ -264,7 +268,7 @@ export default function NgoPage() {
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="mt-2 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] disabled:bg-inactive disabled:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
+          className={`mt-2 ${ctaClass}`}
         >
           {isSubmitting ? "Submitting…" : "Submit"}
         </button>
@@ -313,8 +317,8 @@ function Checkbox({
       className={listRowClass({ selected: checked })}
     >
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] ${
-          checked ? "border-teal bg-teal" : "border-border"
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] transition-all duration-200 ${
+          checked ? "animate-pop-in border-teal bg-teal" : "border-border"
         }`}
       >
         {checked && <CheckIcon />}
@@ -331,6 +335,20 @@ function CheckIcon() {
         d="M3 8l3.5 3.5L13 5"
         stroke="white"
         strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function BigCheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none">
+      <path
+        d="M5 12l4.5 4.5L19 7"
+        stroke="currentColor"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

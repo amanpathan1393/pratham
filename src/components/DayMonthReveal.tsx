@@ -18,7 +18,7 @@ export function DayMonthReveal() {
     >
       <div className="flex flex-col gap-3 sm:flex-row">
         <div
-          className="flex-1 rounded-lg p-4"
+          className="flex-1 rounded-lg p-4 transition-transform duration-300 hover:-translate-y-0.5"
           style={{ background: "#EFEBE3" }}
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
@@ -30,7 +30,7 @@ export function DayMonthReveal() {
         </div>
 
         <div
-          className="flex-1 rounded-lg p-4"
+          className="flex-1 rounded-lg p-4 shadow-sm transition-transform duration-300 hover:-translate-y-0.5"
           style={{ background: "#F5E6C8" }}
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-secondary">

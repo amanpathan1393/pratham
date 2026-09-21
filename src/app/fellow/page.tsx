@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CHALLENGES, STEP1_STORAGE_KEY } from "@/lib/challenges";
-import { listRowClass } from "@/lib/theme";
+import { ctaClass, listRowClass } from "@/lib/theme";
 import { StepDots } from "@/components/StepDots";
 
 const MAX_SELECTIONS = 2;
@@ -51,14 +51,17 @@ export default function FellowStepOne() {
         </p>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-8 animate-fade-in-up text-center">
         <h1 className="text-2xl font-bold tracking-tight text-primary">
           What&apos;s happening in your classroom?
         </h1>
         <p className="mt-2 text-secondary">Pick up to 2.</p>
       </div>
 
-      <div className="mt-6 flex flex-1 flex-col border-b-[1.5px] border-border">
+      <div
+        className="mt-6 flex flex-1 animate-fade-in-up flex-col border-b-[1.5px] border-border"
+        style={{ animationDelay: "120ms" }}
+      >
         {CHALLENGES.map((challenge) => {
           const isSelected = selected.includes(challenge.id);
           const isDisabled = atMax && !isSelected;
@@ -73,8 +76,8 @@ export default function FellowStepOne() {
               className={listRowClass({ selected: isSelected, disabled: isDisabled })}
             >
               <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] ${
-                  isSelected ? "border-teal bg-teal" : "border-border"
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all duration-200 ${
+                  isSelected ? "animate-pop-in border-teal bg-teal" : "border-border"
                 }`}
               >
                 {isSelected && <CheckIcon />}
@@ -89,7 +92,7 @@ export default function FellowStepOne() {
         type="button"
         onClick={handleNext}
         disabled={selected.length === 0}
-        className="mt-8 flex h-14 w-full items-center justify-center rounded-lg bg-teal text-base font-bold text-white transition active:scale-[0.98] disabled:bg-inactive disabled:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2"
+        className={`mt-8 ${ctaClass}`}
       >
         Next
       </button>
