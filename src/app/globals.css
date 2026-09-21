@@ -1,26 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-cream: #f7f4ee;
+  --color-cream: #ffffff;
   --color-primary: #1a1612;
   --color-secondary: #6b6359;
   --color-muted: #9b9389;
   --color-teal: #1a7f74;
   --color-gold: #f2b705;
-  --color-border: #d4c9b8;
-  --color-inactive: #e8e3da;
-  --font-sans: var(--font-noto-sans);
+  --color-border: #e5e1da;
+  --color-inactive: #eeece7;
+  --font-sans: var(--font-poppins);
 }
 
 body {
   background-color: var(--color-cream);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(180, 160, 140, 0.3) 0px,
-    rgba(180, 160, 140, 0.3) 1px,
-    transparent 1px,
-    transparent 24px
-  );
   color: var(--color-primary);
 }
 
@@ -83,8 +76,14 @@ body {
   }
 }
 
-.animate-shake {
-  animation: shake-x 0.3s ease-in-out;
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, -18px);
+  }
 }
 
 .animate-fade-in-up {
@@ -103,12 +102,21 @@ body {
   animation: confetti-burst 0.7s ease-out forwards;
 }
 
+.animate-shake {
+  animation: shake-x 0.3s ease-in-out;
+}
+
+.animate-float {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
   .animate-pop-in,
   .animate-gentle-pulse,
   .animate-confetti,
-  .animate-shake {
+  .animate-shake,
+  .animate-float {
     animation: none !important;
   }
 }

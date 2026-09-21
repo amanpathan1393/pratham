@@ -150,14 +150,14 @@ export default function NgoPage() {
           structured English programme, without building it from scratch.
         </p>
 
-        <ul className="mt-4 border-b-[1.5px] border-border">
+        <ul className="mt-4 flex flex-col gap-3">
           {CHECKLIST.map((item, index) => (
             <li
               key={item}
-              className="flex min-h-14 animate-fade-in-up items-center gap-3 border-t-[1.5px] border-border px-1 py-4"
+              className="flex min-h-14 animate-fade-in-up items-center gap-3 rounded-xl bg-white px-4 py-4 shadow-sm"
               style={{ animationDelay: `${80 + index * 60}ms` }}
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal text-white">
                 <CheckIcon />
               </span>
               <span className="font-semibold text-primary">{item}</span>
@@ -221,7 +221,7 @@ export default function NgoPage() {
           <legend className="text-sm font-semibold text-primary">
             Where you&apos;re hoping to use the programme
           </legend>
-          <div className="mt-2 flex flex-col border-b-[1.5px] border-border">
+          <div className="mt-2 flex flex-col gap-3">
             {SETTING_OPTIONS.map((option) => (
               <Checkbox
                 key={option}
@@ -237,7 +237,7 @@ export default function NgoPage() {
           <legend className="text-sm font-semibold text-primary">
             What you&apos;d like to explore
           </legend>
-          <div className="mt-2 flex flex-col border-b-[1.5px] border-border">
+          <div className="mt-2 flex flex-col gap-3">
             {INTEREST_OPTIONS.map((option) => (
               <Checkbox
                 key={option}
@@ -317,8 +317,8 @@ function Checkbox({
       className={listRowClass({ selected: checked })}
     >
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] transition-all duration-200 ${
-          checked ? "animate-pop-in border-teal bg-teal" : "border-border"
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] text-teal transition-all duration-200 ${
+          checked ? "animate-pop-in border-white bg-white" : "border-border"
         }`}
       >
         {checked && <CheckIcon />}
@@ -333,7 +333,7 @@ function CheckIcon() {
     <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
       <path
         d="M3 8l3.5 3.5L13 5"
-        stroke="white"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

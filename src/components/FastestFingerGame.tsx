@@ -51,7 +51,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
   const isRevealed = status !== "playing";
 
   return (
-    <div className="rounded-lg border-[1.5px] border-border p-4">
+    <div className="rounded-xl bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <p className="text-base font-semibold text-primary">
           Tap <span className="text-teal">CAT</span> before time runs out.
@@ -95,16 +95,16 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
                   type="button"
                   onClick={() => handleTap(row, col)}
                   disabled={isRevealed}
-                  className={`relative flex min-h-11 items-center justify-center gap-1 rounded-md border-[1.5px] text-sm font-semibold transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
+                  className={`relative flex min-h-11 items-center justify-center gap-1 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
                     shakeCell === word ? "animate-shake" : ""
                   } ${
                     isWinningCell
-                      ? "animate-pop-in border-gold bg-gold/15 text-primary shadow-md"
+                      ? "animate-pop-in bg-gold text-white shadow-md"
                       : isTimeoutReveal
-                        ? "border-teal bg-teal/10 text-teal"
+                        ? "bg-teal/10 text-teal shadow-none"
                         : isRevealed
-                          ? "border-border text-muted"
-                          : "border-border text-primary hover:-translate-y-0.5 hover:border-teal/50 hover:bg-teal/5 hover:shadow-sm"
+                          ? "bg-inactive text-muted shadow-none"
+                          : "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
                   }`}
                 >
                   {word}

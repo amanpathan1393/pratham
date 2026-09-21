@@ -81,7 +81,7 @@ export default function FellowStepTwo() {
       </div>
 
       {loaded && matchedChallenges.length === 0 ? (
-        <div className="mt-6 rounded-lg border-[1.5px] border-border p-5 text-center">
+        <div className="mt-6 rounded-xl bg-white p-5 text-center shadow-sm">
           <p className="text-secondary">
             We couldn&apos;t find your answers from step 1.
           </p>
@@ -100,7 +100,7 @@ export default function FellowStepTwo() {
           {matchedChallenges.map((challenge) => (
             <div
               key={challenge.id}
-              className="rounded-lg border-[1.5px] border-border p-5 transition-shadow hover:shadow-md"
+              className="rounded-xl bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
             >
               <p className="text-sm font-semibold text-secondary">
                 {challenge.label}
@@ -118,7 +118,7 @@ export default function FellowStepTwo() {
       </div>
 
       {tasteComplete && (
-        <div className="mt-6 animate-fade-in-up rounded-lg border-[1.5px] border-gold/40 bg-gold/5 p-5 text-center">
+        <div className="mt-6 animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">
           <p className="leading-relaxed text-primary">
             One pilot took learners with strong reading skills from{" "}
             <span className="font-bold">12% to 80%</span>, and cut the lowest

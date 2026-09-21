@@ -59,7 +59,7 @@ export default function CuriousPage() {
       </div>
 
       {tasteComplete && (
-        <div className="mt-6 animate-fade-in-up rounded-lg border-[1.5px] border-gold/40 bg-gold/5 p-5 text-center">
+        <div className="mt-6 animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">
           <h2 className="text-lg font-bold text-primary">
             Want to see how this could fit your classroom?
           </h2>

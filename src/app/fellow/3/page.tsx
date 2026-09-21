@@ -173,7 +173,7 @@ export default function FellowStepThree() {
           <legend className="text-sm font-semibold text-primary">
             What would help most right now?
           </legend>
-          <div className="mt-2 flex flex-col border-b-[1.5px] border-border">
+          <div className="mt-2 flex flex-col gap-3">
             {HELP_OPTIONS.map((option) => {
               const isSelected = form.helpChoice === option;
               return (
@@ -185,8 +185,8 @@ export default function FellowStepThree() {
                   className={listRowClass({ selected: isSelected })}
                 >
                   <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all duration-200 ${
-                      isSelected ? "animate-pop-in border-teal bg-teal" : "border-border"
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] text-teal transition-all duration-200 ${
+                      isSelected ? "animate-pop-in border-white bg-white" : "border-border"
                     }`}
                   >
                     {isSelected && <CheckIcon />}
@@ -244,7 +244,7 @@ function CheckIcon() {
     <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
       <path
         d="M3 8l3.5 3.5L13 5"
-        stroke="white"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

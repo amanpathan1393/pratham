@@ -22,7 +22,7 @@ export default function Home() {
       </div>
 
       <div
-        className="w-full max-w-md animate-fade-in-up border-b-[1.5px] border-border"
+        className="flex w-full max-w-md animate-fade-in-up flex-col gap-3"
         style={{ animationDelay: "150ms" }}
       >
         {OPTIONS.map(({ href, label, Icon }) => (
