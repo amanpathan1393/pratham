@@ -48,8 +48,20 @@ export function ChallengeProofList({
   onComplete?: () => void;
 }) {
   const known = new Set<string>(CHALLENGE_ORDER);
-  const orderedKnown = CHALLENGE_ORDER.filter((id) => challengeIds.includes(id));
+  let orderedKnown = CHALLENGE_ORDER.filter((id) => challengeIds.includes(id));
   const unknownIds = challengeIds.filter((id) => !known.has(id));
+
+  // reading-and-skill-levels and hesitant-to-speak render the identical
+  // before/after story by design (same day1/month9 proof). Showing both
+  // paths back to back just repeats the same quoted lines twice, which
+  // reads as broken rather than as two different proofs — so when both are
+  // picked, show that story once.
+  if (
+    orderedKnown.includes("reading-and-skill-levels") &&
+    orderedKnown.includes("hesitant-to-speak")
+  ) {
+    orderedKnown = orderedKnown.filter((id) => id !== "hesitant-to-speak");
+  }
 
   if (unknownIds.length > 0 && typeof console !== "undefined") {
     console.error(
