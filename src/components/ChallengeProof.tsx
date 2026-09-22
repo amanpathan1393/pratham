@@ -7,7 +7,7 @@ import { ProgressReveal } from "@/components/ProgressReveal";
 import { RegroupClass } from "@/components/RegroupClass";
 import { KitReveal } from "@/components/KitReveal";
 import { SpeakingLadder } from "@/components/SpeakingLadder";
-import { insertGameResult } from "@/lib/gameResults";
+import { insertActivityResult } from "@/lib/activityResults";
 import { CHALLENGES } from "@/lib/challenges";
 
 // Tracks which *kinds* of interactive have already been played this
@@ -195,13 +195,23 @@ function ChallengePath({
   function handleGameComplete(result: "won" | "timeout") {
     markKindPlayed("game");
     // Best-effort analytics ping; never blocks the UI on failure.
-    insertGameResult({ path, result }).catch(() => {});
+    insertActivityResult({ path, kind: "game", result }).catch(() => {});
+    setAfterShown(true);
+    onDone();
+  }
+
+  function handleSpotTheDifferenceComplete(result: "won" | "timeout") {
+    markKindPlayed("spot-the-difference");
+    insertActivityResult({ path, kind: "spot-the-difference", result }).catch(() => {});
     setAfterShown(true);
     onDone();
   }
 
   function handleInteractionDone() {
-    if (interactiveKind) markKindPlayed(interactiveKind);
+    if (interactiveKind) {
+      markKindPlayed(interactiveKind);
+      insertActivityResult({ path, kind: interactiveKind, result: "completed" }).catch(() => {});
+    }
     setAfterShown(true);
     onDone();
   }
@@ -228,7 +238,7 @@ function ChallengePath({
             )}
             {interactiveKind === "regroup" && <RegroupClass onComplete={handleInteractionDone} />}
             {interactiveKind === "spot-the-difference" && (
-              <SpotTheDifference onComplete={handleInteractionDone} />
+              <SpotTheDifference onComplete={handleSpotTheDifferenceComplete} />
             )}
             {interactiveKind === "speaking-ladder" && (
               <SpeakingLadder onComplete={handleInteractionDone} />

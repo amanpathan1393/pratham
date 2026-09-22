@@ -6,7 +6,7 @@ import { FastestFingerGame } from "@/components/FastestFingerGame";
 import { SpotTheDifference } from "@/components/SpotTheDifference";
 import { RegroupClass } from "@/components/RegroupClass";
 import { markKindPlayed, ACCENT } from "@/components/ChallengeProof";
-import { insertGameResult } from "@/lib/gameResults";
+import { insertActivityResult } from "@/lib/activityResults";
 import { insertSubmission } from "@/lib/submissions";
 import { Honeypot } from "@/components/Honeypot";
 import { ctaClass } from "@/lib/theme";
@@ -31,8 +31,22 @@ export default function CuriousPage() {
 
   function handleGameComplete(result: "won" | "timeout") {
     // Best-effort analytics ping; never blocks the UI on failure.
-    insertGameResult({ path: "curious", result }).catch(() => {});
+    insertActivityResult({ path: "curious", kind: "game", result }).catch(() => {});
     markDone("game");
+  }
+
+  function handleSpotTheDifferenceComplete(result: "won" | "timeout") {
+    insertActivityResult({ path: "curious", kind: "spot-the-difference", result }).catch(
+      () => {},
+    );
+    markDone("spot-the-difference");
+  }
+
+  function handleRegroupComplete() {
+    insertActivityResult({ path: "curious", kind: "regroup", result: "completed" }).catch(
+      () => {},
+    );
+    markDone("regroup");
   }
 
   async function handleEmailSubmit(e: React.FormEvent) {
@@ -91,7 +105,7 @@ export default function CuriousPage() {
           label="Spot the difference"
           caption="A real workbook game, word-family style"
         >
-          <SpotTheDifference onComplete={() => markDone("spot-the-difference")} />
+          <SpotTheDifference onComplete={handleSpotTheDifferenceComplete} />
         </ActivityCard>
 
         <ActivityCard
@@ -99,7 +113,7 @@ export default function CuriousPage() {
           label="Regroup by level"
           caption="How one classroom becomes small groups"
         >
-          <RegroupClass onComplete={() => markDone("regroup")} />
+          <RegroupClass onComplete={handleRegroupComplete} />
         </ActivityCard>
       </div>
 
@@ -108,18 +122,17 @@ export default function CuriousPage() {
           <h2 className="text-lg font-bold text-primary">
             Want to see how this could fit your classroom?
           </h2>
-
-          <Link href="/fellow" className={`mt-4 ${ctaClass}`}>
-            Yes, I&apos;m a Fellow
-          </Link>
+          <p className="mt-1 text-sm text-secondary">
+            Leave your email and we&apos;ll follow up.
+          </p>
 
           {!showEmailForm && !emailSubmitted && (
             <button
               type="button"
               onClick={() => setShowEmailForm(true)}
-              className="mt-3 inline-block py-3.5 text-sm font-semibold text-secondary underline"
+              className={`mt-4 ${ctaClass}`}
             >
-              Just leave your email
+              Leave your email
             </button>
           )}
 

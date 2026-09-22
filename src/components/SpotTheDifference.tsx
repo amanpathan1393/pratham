@@ -9,7 +9,11 @@ const TIME_SECONDS = 8;
 const FAMILY_WORDS = ["CAT", "BAT", "HAT", "MAT", "SAT"];
 const ODD_WORD = "CAP";
 
-export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
+export function SpotTheDifference({
+  onComplete,
+}: {
+  onComplete?: (result: "won" | "timeout") => void;
+}) {
   // Picked client-side only: Math.random() during the initial render would
   // produce a different value on the server than on the client's hydration
   // pass, causing a hydration mismatch (the two renders would show the odd
@@ -37,7 +41,7 @@ export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
 
   useEffect(() => {
     if (status === "won" || status === "timeout") {
-      onComplete?.();
+      onComplete?.(status);
     }
     // Only fire once, the moment the round ends either way.
     // eslint-disable-next-line react-hooks/exhaustive-deps

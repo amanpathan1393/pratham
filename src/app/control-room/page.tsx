@@ -25,12 +25,27 @@ type SubmissionRow = {
   ngo_explore: string[] | null;
 };
 
-type GameResultRow = {
+type ActivityResultRow = {
   id: string;
   created_at: string;
   path: "fellow" | "curious";
-  result: "won" | "timeout";
+  kind: string;
+  result: "won" | "timeout" | "completed";
 };
+
+// Display order matches the challenge picker on fellow/1.
+const ACTIVITY_LABEL: Record<string, string> = {
+  game: "Fastest Finger First",
+  "speaking-ladder": "Speaking Ladder",
+  "kit-reveal": "Session Kit Reveal",
+  "progress-reveal": "Progress Reveal",
+  regroup: "Regroup by Level",
+  "spot-the-difference": "Spot the Difference",
+};
+const ACTIVITY_ORDER = Object.keys(ACTIVITY_LABEL);
+// These two have a real pass/fail outcome; the rest are single-path
+// reveals with nothing to win or lose, so "completed" is all there is.
+const WIN_LOSE_KINDS = new Set(["game", "spot-the-difference"]);
 
 function tally(values: (string | null | undefined)[]) {
   const counts = new Map<string, number>();
@@ -50,26 +65,26 @@ function tallyArrays(values: (string[] | null | undefined)[]) {
 
 export default async function ControlRoomPage() {
   let submissions: SubmissionRow[] = [];
-  let gameResults: GameResultRow[] = [];
+  let activityResults: ActivityResultRow[] = [];
   let loadError: string | null = null;
 
   try {
     const supabaseAdmin = getSupabaseAdmin();
-    const [submissionsRes, gameRes] = await Promise.all([
+    const [submissionsRes, activityRes] = await Promise.all([
       supabaseAdmin
         .from("submissions")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(1000),
       supabaseAdmin
-        .from("game_results")
+        .from("activity_results")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(2000),
+        .limit(5000),
     ]);
     submissions = (submissionsRes.data ?? []) as SubmissionRow[];
-    gameResults = (gameRes.data ?? []) as GameResultRow[];
-    loadError = submissionsRes.error?.message ?? gameRes.error?.message ?? null;
+    activityResults = (activityRes.data ?? []) as ActivityResultRow[];
+    loadError = submissionsRes.error?.message ?? activityRes.error?.message ?? null;
   } catch (err) {
     loadError = err instanceof Error ? err.message : "Failed to load data.";
   }
@@ -88,9 +103,9 @@ export default async function ControlRoomPage() {
   const ngoSettingCounts = tallyArrays(ngoSubs.map((s) => s.ngo_settings));
   const ngoInterestCounts = tallyArrays(ngoSubs.map((s) => s.ngo_explore));
 
-  function gameStats(path?: "fellow" | "curious") {
-    const rows = path ? gameResults.filter((g) => g.path === path) : gameResults;
-    const won = rows.filter((g) => g.result === "won").length;
+  function activityStats(kind: string) {
+    const rows = activityResults.filter((a) => a.kind === kind);
+    const won = rows.filter((a) => a.result === "won").length;
     return {
       total: rows.length,
       won,
@@ -98,9 +113,7 @@ export default async function ControlRoomPage() {
     };
   }
 
-  const overall = gameStats();
-  const fellowGame = gameStats("fellow");
-  const curiousGame = gameStats("curious");
+  const totalActivityPlays = activityResults.length;
 
   return (
     <main className="flex flex-1 flex-col bg-[#0b1220] px-6 py-10 text-slate-100">
@@ -117,8 +130,8 @@ export default async function ControlRoomPage() {
         {loadError && (
           <p className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             {loadError} Check that SUPABASE_SERVICE_ROLE_KEY is set (in .env.local for dev, in
-            the Vercel project for production) and that the submissions / game_results tables
-            exist.
+            the Vercel project for production) and that the submissions / activity_results
+            tables exist.
           </p>
         )}
 
@@ -130,23 +143,25 @@ export default async function ControlRoomPage() {
         </div>
 
         <section className="mt-12">
-          <SectionTitle title="Fastest Finger First — game outcomes" />
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <RingCard
-              label="Overall win rate"
-              percent={overall.rate}
-              sub={`${overall.won} of ${overall.total} plays`}
-            />
-            <RingCard
-              label="On the Fellow flow"
-              percent={fellowGame.rate}
-              sub={`${fellowGame.won} of ${fellowGame.total} plays`}
-            />
-            <RingCard
-              label="On the Curious flow"
-              percent={curiousGame.rate}
-              sub={`${curiousGame.won} of ${curiousGame.total} plays`}
-            />
+          <SectionTitle title="Activity engagement" />
+          <p className="mt-1 text-sm text-slate-500">
+            All 6 interactives, across Fellow and Curious. {totalActivityPlays} plays total.
+          </p>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ACTIVITY_ORDER.map((kind) => {
+              const stats = activityStats(kind);
+              const label = ACTIVITY_LABEL[kind];
+              return WIN_LOSE_KINDS.has(kind) ? (
+                <RingCard
+                  key={kind}
+                  label={label}
+                  percent={stats.rate}
+                  sub={`${stats.won} of ${stats.total} won`}
+                />
+              ) : (
+                <ActivityCountCard key={kind} label={label} count={stats.total} />
+              );
+            })}
           </div>
         </section>
 
@@ -301,6 +316,18 @@ function BarList({ items }: { items: { label: string; count: number }[] }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function ActivityCountCard({ label, count }: { label: string; count: number }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">{label}</p>
+      <p className="mt-2 text-3xl font-bold text-white">{count}</p>
+      <p className="mt-1 text-xs text-slate-400">
+        {count === 1 ? "time tried" : "times tried"}
+      </p>
     </div>
   );
 }

@@ -39,7 +39,10 @@ alter table public.submissions
   add column if not exists student_count text,
   add column if not exists grades_taught text;
 
--- One row per Fastest Finger First play, for the Control Room infographic.
+-- Superseded by activity_results below — the app only had the Fastest
+-- Finger First (CAT) game when this was created, now there are 6 different
+-- interactives. Left in place so historical rows aren't silently dropped;
+-- nothing writes to it anymore.
 create table if not exists public.game_results (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
@@ -55,6 +58,29 @@ create policy "Allow public inserts"
   to public
   with check (true);
 
--- The Control Room page reads both tables with the service_role key from
+-- One row per completed interactive (any of the 6), for the Control Room's
+-- per-activity engagement view. `kind` is the interactive component (game,
+-- kit-reveal, progress-reveal, regroup, spot-the-difference,
+-- speaking-ladder). `result` is "won"/"timeout" for the two interactives
+-- that have a pass/fail outcome (game, spot-the-difference), otherwise
+-- "completed".
+create table if not exists public.activity_results (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  path text not null,
+  kind text not null,
+  result text not null
+);
+
+alter table public.activity_results enable row level security;
+
+create policy "Allow public inserts"
+  on public.activity_results
+  for insert
+  to public
+  with check (true);
+
+-- The Control Room page reads these tables with the service_role key from
 -- the server (bypasses RLS entirely), so no SELECT policy is added here —
--- anon/public keys still can't read submissions or game_results.
+-- anon/public keys still can't read submissions, game_results, or
+-- activity_results.
