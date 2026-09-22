@@ -95,6 +95,35 @@ body {
   }
 }
 
+@keyframes icon-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-fade-in-up {
   animation: fade-in-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -124,6 +153,18 @@ body {
   transform-origin: bottom;
 }
 
+.animate-icon-bob {
+  animation: icon-bob 2.4s ease-in-out infinite;
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 2.8s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 14s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
   .animate-pop-in,
@@ -131,7 +172,10 @@ body {
   .animate-confetti,
   .animate-shake,
   .animate-float,
-  .animate-grow-up {
+  .animate-grow-up,
+  .animate-icon-bob,
+  .animate-soft-pulse,
+  .animate-spin-slow {
     animation: none !important;
   }
 }

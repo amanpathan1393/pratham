@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import Image from "next/image";
+import Link from "next/link";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -28,10 +29,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           style={{ animationDelay: "2.5s" }}
         />
         <header className="relative border-b-[3px] border-gold bg-cream shadow-sm">
-          <div className="flex items-center justify-center gap-6 px-6 py-3">
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-6 px-6 py-3 transition-opacity hover:opacity-80"
+          >
             <Image
               src="/images/pratham-logo.png"
-              alt="Pratham"
+              alt="Pratham — back to home"
               width={144}
               height={32}
               className="h-8 w-auto"
@@ -39,13 +43,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             />
             <Image
               src="/images/pradigi-logo.webp"
-              alt="PraDigi"
+              alt="PraDigi — back to home"
               width={92}
               height={32}
               className="h-8 w-auto"
               priority
             />
-          </div>
+          </Link>
         </header>
         <div className="relative flex flex-1 flex-col">{children}</div>
       </body>

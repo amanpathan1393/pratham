@@ -10,9 +10,19 @@ const OPTIONS = [
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-10">
-      <div className="animate-fade-in-up text-center">
-        <span className="inline-block rounded-full bg-gold/15 px-3 py-1 text-xs font-bold tracking-wide text-gold uppercase">
+    <main className="relative flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden px-6 py-10">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-16 right-8 h-10 w-10 animate-spin-slow rounded-full border-2 border-dashed border-teal/25 sm:right-16"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-24 left-8 h-14 w-14 animate-spin-slow rounded-full border-2 border-dashed border-gold/30 sm:left-16"
+        style={{ animationDirection: "reverse", animationDuration: "20s" }}
+      />
+
+      <div className="relative animate-fade-in-up text-center">
+        <span className="inline-block animate-soft-pulse rounded-full bg-gold/15 px-3 py-1 text-xs font-bold tracking-wide text-gold uppercase">
           A PraDigi programme
         </span>
         <h1 className="mt-4 text-4xl font-bold tracking-tight text-primary">
@@ -22,12 +32,15 @@ export default function Home() {
       </div>
 
       <div
-        className="flex w-full max-w-md animate-fade-in-up flex-col gap-3"
+        className="relative flex w-full max-w-md animate-fade-in-up flex-col gap-3"
         style={{ animationDelay: "150ms" }}
       >
-        {OPTIONS.map(({ href, label, Icon }) => (
+        {OPTIONS.map(({ href, label, Icon }, i) => (
           <Link key={href} href={href} className={`group ${listRowClass()}`}>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal/10 text-teal">
+            <span
+              className="flex h-9 w-9 shrink-0 animate-icon-bob items-center justify-center rounded-full bg-teal/10 text-teal"
+              style={{ animationDelay: `${i * 250}ms` }}
+            >
               <Icon />
             </span>
             <span className="flex-1 text-lg font-semibold">{label}</span>

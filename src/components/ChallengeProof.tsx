@@ -8,6 +8,7 @@ import { RegroupClass } from "@/components/RegroupClass";
 import { KitReveal } from "@/components/KitReveal";
 import { SpeakingLadder } from "@/components/SpeakingLadder";
 import { insertGameResult } from "@/lib/gameResults";
+import { CHALLENGES } from "@/lib/challenges";
 
 export const GAME_PLAYED_KEY = "step-by-step-english.taste.game-played";
 
@@ -120,12 +121,13 @@ export function ChallengeProofList({
           is a bug — no proof content exists for it.
         </div>
       )}
-      {orderedKnown.map((id) => (
+      {orderedKnown.map((id, i) => (
         <ChallengePath
           key={id}
           id={id}
           path={path}
           skipGame={gamePlayed}
+          accent={i % 2 === 0 ? "teal" : "gold"}
           onDone={() => setDoneIds((prev) => new Set(prev).add(id))}
         />
       ))}
@@ -133,20 +135,29 @@ export function ChallengeProofList({
   );
 }
 
+const ACCENT = {
+  teal: { dot: "bg-teal", border: "border-teal/25", label: "text-teal" },
+  gold: { dot: "bg-gold", border: "border-gold/40", label: "text-gold" },
+} as const;
+
 function ChallengePath({
   id,
   path,
   skipGame,
+  accent,
   onDone,
 }: {
   id: ChallengeId;
   path: "fellow" | "curious";
   skipGame: boolean;
+  accent: keyof typeof ACCENT;
   onDone: () => void;
 }) {
   const interactiveKind = INTERACTIVE_FOR[id];
   const isGamePath = interactiveKind === "game";
   const [afterShown, setAfterShown] = useState(!interactiveKind || (isGamePath && skipGame));
+  const label = CHALLENGES.find((c) => c.id === id)?.label ?? id;
+  const a = ACCENT[accent];
 
   useEffect(() => {
     if (afterShown) onDone();
@@ -172,41 +183,48 @@ function ChallengePath({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <TextPanel tone="before">{BEFORE_TEXT[id]}</TextPanel>
+    <div className={`rounded-2xl border-2 ${a.border} bg-[#fdfcfa] p-4 sm:p-5`}>
+      <div className="mb-3 flex items-center gap-2">
+        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${a.dot}`} />
+        <p className={`text-xs font-bold tracking-wide uppercase ${a.label}`}>{label}</p>
+      </div>
 
-      {interactiveKind && !afterShown && (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold tracking-wide text-secondary uppercase">
-            {INTERACTIVE_LABEL[interactiveKind]}
-          </p>
-          {interactiveKind === "game" && <FastestFingerGame onComplete={handleGameComplete} />}
-          {interactiveKind === "kit-reveal" && <KitReveal onComplete={handleInteractionDone} />}
-          {interactiveKind === "which-is-later" && (
-            <WhichIsLater onComplete={handleInteractionDone} />
-          )}
-          {interactiveKind === "regroup" && <RegroupClass onComplete={handleInteractionDone} />}
-          {interactiveKind === "spot-the-difference" && (
-            <SpotTheDifference onComplete={handleInteractionDone} />
-          )}
-          {interactiveKind === "speaking-ladder" && (
-            <SpeakingLadder onComplete={handleInteractionDone} />
-          )}
-        </div>
-      )}
+      <div className="flex flex-col gap-3">
+        <TextPanel tone="before">{BEFORE_TEXT[id]}</TextPanel>
 
-      {afterShown && <AfterPanel id={id} />}
+        {interactiveKind && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold tracking-wide text-secondary uppercase">
+              {INTERACTIVE_LABEL[interactiveKind]}
+            </p>
+            {interactiveKind === "game" && <FastestFingerGame onComplete={handleGameComplete} />}
+            {interactiveKind === "kit-reveal" && <KitReveal onComplete={handleInteractionDone} />}
+            {interactiveKind === "which-is-later" && (
+              <WhichIsLater onComplete={handleInteractionDone} />
+            )}
+            {interactiveKind === "regroup" && <RegroupClass onComplete={handleInteractionDone} />}
+            {interactiveKind === "spot-the-difference" && (
+              <SpotTheDifference onComplete={handleInteractionDone} />
+            )}
+            {interactiveKind === "speaking-ladder" && (
+              <SpeakingLadder onComplete={handleInteractionDone} />
+            )}
+          </div>
+        )}
 
-      {afterShown && isGamePath && (
-        <div className="animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">
-          <p className="leading-relaxed text-primary">
-            One pilot took learners with strong reading skills from{" "}
-            <span className="font-bold">12% to 80%</span>, and cut the lowest reading band
-            from <span className="font-bold">63% to 7%</span>.
-          </p>
-          <p className="mt-1 text-sm text-secondary">(539 learners)</p>
-        </div>
-      )}
+        {afterShown && <AfterPanel id={id} />}
+
+        {afterShown && isGamePath && (
+          <div className="animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">
+            <p className="leading-relaxed text-primary">
+              One pilot took learners with strong reading skills from{" "}
+              <span className="font-bold">12% to 80%</span>, and cut the lowest reading band
+              from <span className="font-bold">63% to 7%</span>.
+            </p>
+            <p className="mt-1 text-sm text-secondary">(539 learners)</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
