@@ -137,8 +137,8 @@ export default async function ControlRoomPage() {
 
         <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard label="Total submissions" value={submissions.length} />
-          <StatCard label="Fellow" value={fellowSubs.length} accent="teal" />
-          <StatCard label="NGO" value={ngoSubs.length} accent="gold" />
+          <StatCard label="Fellow" value={fellowSubs.length} accent="gold" />
+          <StatCard label="NGO" value={ngoSubs.length} accent="teal" />
           <StatCard label="Curious (email left)" value={curiousSubs.length} />
         </div>
 
@@ -282,8 +282,8 @@ function SectionTitle({ title }: { title: string }) {
 
 function PathBadge({ path }: { path: Path }) {
   const styles: Record<Path, string> = {
-    fellow: "bg-teal/15 text-teal",
-    ngo: "bg-gold/15 text-gold",
+    fellow: "bg-gold/15 text-gold",
+    ngo: "bg-teal/15 text-teal",
     curious: "bg-white/10 text-slate-300",
   };
   return (

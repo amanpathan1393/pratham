@@ -14,6 +14,9 @@ const OPTIONS = [
 const DOODLE_ICONS = [
   { Icon: BookIcon, style: { top: "5%", left: "6%" }, size: 30, delay: "0s", rotate: 0 },
   { Icon: PencilIcon, style: { top: "4%", right: "8%" }, size: 28, delay: "1.3s", rotate: 35 },
+  { Icon: StarIcon, style: { top: "2%", left: "46%" }, size: 18, delay: "0.9s", rotate: 0 },
+  { Icon: CapIcon, style: { top: "13%", left: "24%" }, size: 24, delay: "1.6s", rotate: 0 },
+  { Icon: SpeechIcon, style: { top: "9%", right: "30%" }, size: 22, delay: "2.3s", rotate: 0 },
   { Icon: StarIcon, style: { top: "24%", left: "38%" }, size: 20, delay: "2.1s", rotate: 0 },
   { Icon: SpeechIcon, style: { top: "30%", right: "4%" }, size: 34, delay: "0.6s", rotate: 0 },
   { Icon: CapIcon, style: { top: "46%", left: "3%" }, size: 32, delay: "1.8s", rotate: 0 },
@@ -69,7 +72,7 @@ export default function Home() {
         {OPTIONS.map(({ href, label, Icon }, i) => (
           <Link key={href} href={href} className={`group ${listRowClass()}`}>
             <span
-              className="flex h-9 w-9 shrink-0 animate-icon-bob items-center justify-center rounded-full bg-teal/10 text-teal"
+              className="flex h-9 w-9 shrink-0 animate-icon-bob items-center justify-center rounded-full bg-gold/10 text-gold"
               style={{ animationDelay: `${i * 250}ms` }}
             >
               <Icon />
