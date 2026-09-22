@@ -43,20 +43,37 @@ export const CHALLENGES: Challenge[] = [
   },
 ];
 
-// Which cluster a challenge belongs to, for routing the taste experience on
-// fellow/2: challenges here point to the interactive Fastest Finger First
-// game; everything else routes straight to the Day-1-vs-Month-9 reveal.
-const GAME_CHALLENGE_IDS = new Set<string>([
-  "reading-and-skill-levels",
+// Which activity proves which kind of challenge, for routing the taste
+// experience on fellow/2. Content/skill challenges get content-based proof
+// (the game, or dialogue in the reveal); structural/logistics challenges get
+// a fact-reveal about the mechanism itself instead, since a reading passage
+// can't prove how a classroom gets split into groups.
+const FACT_CHALLENGE_IDS = [
   "materials-and-prep-time",
-]);
+  "no-progress-tracking",
+  "large-class-sizes",
+  "engagement-between-sessions",
+];
 
-// If any pick falls in the game cluster (including a mixed pick spanning
-// both clusters), show the game. Only an all-comprehension-cluster pick — or
-// no pick at all — skips straight to the reveal.
-export function challengesWantGame(challengeIds: string[]): boolean {
-  if (challengeIds.length === 0) return true;
-  return challengeIds.some((id) => GAME_CHALLENGE_IDS.has(id));
+export type ActivityPlan =
+  | { kind: "game" }
+  | { kind: "reveal" }
+  | { kind: "facts"; challengeIds: string[] };
+
+// Priority when a pick spans more than one type: reading-and-skill-levels
+// (game) beats hesitant-to-speak (reveal) beats the structural set (facts).
+// No pick at all defaults to the game, same as before.
+export function selectActivity(challengeIds: string[]): ActivityPlan {
+  if (challengeIds.length === 0 || challengeIds.includes("reading-and-skill-levels")) {
+    return { kind: "game" };
+  }
+  if (challengeIds.includes("hesitant-to-speak")) {
+    return { kind: "reveal" };
+  }
+  return {
+    kind: "facts",
+    challengeIds: FACT_CHALLENGE_IDS.filter((id) => challengeIds.includes(id)),
+  };
 }
 
 export const STEP1_STORAGE_KEY = "step-by-step-english.fellow.step1-challenges";

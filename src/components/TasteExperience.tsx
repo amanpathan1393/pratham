@@ -3,26 +3,28 @@
 import { useEffect, useState } from "react";
 import { FastestFingerGame } from "@/components/FastestFingerGame";
 import { DayMonthReveal } from "@/components/DayMonthReveal";
+import { FactSequence } from "@/components/FactReveal";
 import { insertGameResult } from "@/lib/gameResults";
+import type { ActivityPlan } from "@/lib/challenges";
 
 export const GAME_PLAYED_KEY = "step-by-step-english.taste.game-played";
 
 export function TasteExperience({
   onComplete,
-  skipGame = false,
+  plan = { kind: "game" },
   path,
 }: {
   onComplete?: () => void;
-  skipGame?: boolean;
+  plan?: ActivityPlan;
   path: "fellow" | "curious";
 }) {
-  const [gameDone, setGameDone] = useState(skipGame);
+  const [gameDone, setGameDone] = useState(plan.kind === "reveal");
 
   useEffect(() => {
-    if (skipGame) {
+    if (plan.kind === "reveal") {
       onComplete?.();
     }
-    // Only meant to fire once, based on the skipGame value this mounted with.
+    // Only meant to fire once, based on the plan this mounted with.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -38,9 +40,13 @@ export function TasteExperience({
     onComplete?.();
   }
 
+  if (plan.kind === "facts") {
+    return <FactSequence challengeIds={plan.challengeIds} onComplete={onComplete} />;
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      {!skipGame && <FastestFingerGame onComplete={handleGameComplete} />}
+      {plan.kind === "game" && <FastestFingerGame onComplete={handleGameComplete} />}
       {gameDone && <DayMonthReveal />}
     </div>
   );

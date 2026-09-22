@@ -7,7 +7,8 @@ import {
   CHALLENGES,
   CONTENT_REVIEWED,
   STEP1_STORAGE_KEY,
-  challengesWantGame,
+  selectActivity,
+  type ActivityPlan,
   type Challenge,
 } from "@/lib/challenges";
 import { TasteExperience, GAME_PLAYED_KEY } from "@/components/TasteExperience";
@@ -28,10 +29,10 @@ export default function FellowStepTwo() {
   const [step1Selection, setStep1Selection] = useState<{
     loaded: boolean;
     matchedChallenges: Challenge[];
-    skipGame: boolean;
-  }>({ loaded: false, matchedChallenges: [], skipGame: false });
+    plan: ActivityPlan;
+  }>({ loaded: false, matchedChallenges: [], plan: { kind: "game" } });
   const [tasteComplete, setTasteComplete] = useState(false);
-  const { loaded, matchedChallenges, skipGame } = step1Selection;
+  const { loaded, matchedChallenges, plan } = step1Selection;
 
   useEffect(() => {
     let ids: string[] = [];
@@ -43,13 +44,20 @@ export default function FellowStepTwo() {
     } catch {
       ids = [];
     }
+    let plan = selectActivity(ids);
+    // Never replay the game if it was already played (e.g. via /curious
+    // first) — fall back to the reveal instead of the fact-reveals, since
+    // that's the closest "already proven" equivalent to the game.
+    if (gamePlayed && plan.kind === "game") {
+      plan = { kind: "reveal" };
+    }
     // sessionStorage only exists client-side, so this one-time read has to
     // happen post-mount rather than during render.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStep1Selection({
       loaded: true,
       matchedChallenges: CHALLENGES.filter((c) => ids.includes(c.id)),
-      skipGame: gamePlayed || !challengesWantGame(ids),
+      plan,
     });
   }, []);
 
@@ -122,7 +130,7 @@ export default function FellowStepTwo() {
         <div className="mt-8 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
           <TasteExperience
             path="fellow"
-            skipGame={skipGame}
+            plan={plan}
             onComplete={() => setTasteComplete(true)}
           />
         </div>
