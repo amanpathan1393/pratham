@@ -7,6 +7,8 @@ export type SubmissionInsert = {
   phone?: string | null;
   role?: string | null;
   challenges?: string[] | null;
+  student_count?: string | null;
+  grades_taught?: string | null;
   next_step?: string | null;
   ngo_org?: string | null;
   ngo_location?: string | null;

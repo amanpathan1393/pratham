@@ -10,6 +10,8 @@ create table if not exists public.submissions (
   phone text,
   role text,
   challenges text[],
+  student_count text,
+  grades_taught text,
   next_step text,
   ngo_org text,
   ngo_location text,
@@ -26,3 +28,10 @@ create policy "Allow public inserts"
   for insert
   to anon
   with check (true);
+
+-- If the table already exists in your project (it does in production),
+-- `create table if not exists` above is a no-op and won't add new columns.
+-- Run this once instead to bring an existing table up to date:
+alter table public.submissions
+  add column if not exists student_count text,
+  add column if not exists grades_taught text;

@@ -13,10 +13,16 @@ const CURRENT_STEP = 3;
 
 const HELP_OPTIONS = ["Try it in my classroom", "Talk to the team first"] as const;
 
+const STUDENT_COUNT_OPTIONS = ["5–20", "20–40", "40–60", "60+"] as const;
+
+const GRADE_OPTIONS = ["Grades 1–4", "Grades 5–7", "Grades 8–10"] as const;
+
 type FormState = {
   name: string;
   email: string;
   phone: string;
+  studentCount: string | null;
+  gradesTaught: string | null;
   helpChoice: string | null;
 };
 
@@ -24,6 +30,8 @@ const INITIAL_FORM: FormState = {
   name: "",
   email: "",
   phone: "",
+  studentCount: null,
+  gradesTaught: null,
   helpChoice: null,
 };
 
@@ -48,6 +56,8 @@ export default function FellowStepThree() {
   const isValid =
     form.name.trim() !== "" &&
     form.email.trim() !== "" &&
+    form.studentCount !== null &&
+    form.gradesTaught !== null &&
     form.helpChoice !== null;
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -71,6 +81,8 @@ export default function FellowStepThree() {
         email: form.email,
         phone: form.phone || null,
         challenges: challengeIds,
+        student_count: form.studentCount,
+        grades_taught: form.gradesTaught,
         next_step: form.helpChoice,
       });
       setSubmitted(true);
@@ -163,6 +175,64 @@ export default function FellowStepThree() {
             className={inputClass}
           />
         </Field>
+
+        <fieldset>
+          <legend className="text-sm font-semibold text-primary">
+            How many students do you teach?
+          </legend>
+          <div className="mt-2 flex flex-col gap-3">
+            {STUDENT_COUNT_OPTIONS.map((option) => {
+              const isSelected = form.studentCount === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => update("studentCount", option)}
+                  aria-pressed={isSelected}
+                  className={listRowClass({ selected: isSelected })}
+                >
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] text-teal transition-all duration-200 ${
+                      isSelected ? "animate-pop-in border-white bg-white" : "border-border"
+                    }`}
+                  >
+                    {isSelected && <CheckIcon />}
+                  </span>
+                  <span>{option}</span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="text-sm font-semibold text-primary">
+            Which grades do you teach?
+          </legend>
+          <div className="mt-2 flex flex-col gap-3">
+            {GRADE_OPTIONS.map((option) => {
+              const isSelected = form.gradesTaught === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => update("gradesTaught", option)}
+                  aria-pressed={isSelected}
+                  className={listRowClass({ selected: isSelected })}
+                >
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px] text-teal transition-all duration-200 ${
+                      isSelected ? "animate-pop-in border-white bg-white" : "border-border"
+                    }`}
+                  >
+                    {isSelected && <CheckIcon />}
+                  </span>
+                  <span>{option}</span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
         <fieldset>
           <legend className="text-sm font-semibold text-primary">
