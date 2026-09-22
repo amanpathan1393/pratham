@@ -184,6 +184,9 @@ function AfterPanel({ id }: { id: ChallengeId }) {
       return (
         <Panel tone="after">
           <Timeline points={["Baseline", "Midline", "Endline"]} />
+          <p className="mt-3 text-sm text-primary">
+            Each stage is a real assessment — so growth shows up as data, not a guess.
+          </p>
         </Panel>
       );
     case "large-class-sizes":
@@ -241,18 +244,26 @@ function IconRow({ items }: { items: { icon: React.ReactNode; label: string }[] 
   );
 }
 
+const BAR_HEIGHTS = [22, 42, 64];
+
 function Timeline({ points }: { points: string[] }) {
   return (
-    <div className="flex items-center">
+    <div className="flex items-end gap-4">
       {points.map((point, i) => (
-        <div key={point} className="flex flex-1 items-center last:flex-none">
-          <div className="flex flex-col items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-teal text-xs font-bold text-white">
-              {i + 1}
-            </span>
-            <span className="text-xs font-semibold text-secondary">{point}</span>
+        <div key={point} className="flex flex-1 flex-col items-center gap-2">
+          <div className="flex h-16 w-full items-end justify-center">
+            <div
+              className="w-8 origin-bottom animate-grow-up rounded-t-md bg-teal"
+              style={{
+                height: `${BAR_HEIGHTS[i] ?? BAR_HEIGHTS[BAR_HEIGHTS.length - 1]}px`,
+                animationDelay: `${i * 200 + 150}ms`,
+              }}
+            />
           </div>
-          {i < points.length - 1 && <div className="mx-2 h-[2px] flex-1 bg-teal/30" />}
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal text-[11px] font-bold text-white">
+            {i + 1}
+          </span>
+          <span className="text-xs font-semibold text-secondary">{point}</span>
         </div>
       ))}
     </div>

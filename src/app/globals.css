@@ -86,6 +86,15 @@ body {
   }
 }
 
+@keyframes grow-up {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
 .animate-fade-in-up {
   animation: fade-in-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -110,13 +119,19 @@ body {
   animation: float-slow 7s ease-in-out infinite;
 }
 
+.animate-grow-up {
+  animation: grow-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: bottom;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
   .animate-pop-in,
   .animate-gentle-pulse,
   .animate-confetti,
   .animate-shake,
-  .animate-float {
+  .animate-float,
+  .animate-grow-up {
     animation: none !important;
   }
 }
