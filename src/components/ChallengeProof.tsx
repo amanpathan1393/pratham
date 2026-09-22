@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { FastestFingerGame } from "@/components/FastestFingerGame";
 import { SpotTheDifference } from "@/components/SpotTheDifference";
-import { WhichIsLater } from "@/components/WhichIsLater";
+import { ProgressReveal } from "@/components/ProgressReveal";
 import { RegroupClass } from "@/components/RegroupClass";
 import { KitReveal } from "@/components/KitReveal";
 import { SpeakingLadder } from "@/components/SpeakingLadder";
@@ -41,7 +41,7 @@ const BEFORE_TEXT: Record<ChallengeId, string> = {
 type InteractiveKind =
   | "game"
   | "kit-reveal"
-  | "which-is-later"
+  | "progress-reveal"
   | "regroup"
   | "spot-the-difference"
   | "speaking-ladder";
@@ -52,7 +52,7 @@ const INTERACTIVE_FOR: Record<ChallengeId, InteractiveKind> = {
   "reading-and-skill-levels": "game",
   "hesitant-to-speak": "speaking-ladder",
   "materials-and-prep-time": "kit-reveal",
-  "no-progress-tracking": "which-is-later",
+  "no-progress-tracking": "progress-reveal",
   "large-class-sizes": "regroup",
   "engagement-between-sessions": "spot-the-difference",
 };
@@ -60,7 +60,7 @@ const INTERACTIVE_FOR: Record<ChallengeId, InteractiveKind> = {
 const INTERACTIVE_LABEL: Record<InteractiveKind, string> = {
   game: "What daily practice looks like",
   "kit-reveal": "Try it yourself",
-  "which-is-later": "Try it yourself",
+  "progress-reveal": "Try it yourself",
   regroup: "Try it yourself",
   "spot-the-difference": "Try it yourself",
   "speaking-ladder": "Try it yourself",
@@ -199,8 +199,8 @@ function ChallengePath({
             </p>
             {interactiveKind === "game" && <FastestFingerGame onComplete={handleGameComplete} />}
             {interactiveKind === "kit-reveal" && <KitReveal onComplete={handleInteractionDone} />}
-            {interactiveKind === "which-is-later" && (
-              <WhichIsLater onComplete={handleInteractionDone} />
+            {interactiveKind === "progress-reveal" && (
+              <ProgressReveal onComplete={handleInteractionDone} />
             )}
             {interactiveKind === "regroup" && <RegroupClass onComplete={handleInteractionDone} />}
             {interactiveKind === "spot-the-difference" && (
