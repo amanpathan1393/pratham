@@ -13,6 +13,15 @@ export default function Home() {
     <main className="relative flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden px-6 py-10">
       <div
         aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: "url(/images/doodle-pattern.svg)",
+          backgroundRepeat: "repeat",
+          backgroundSize: "220px 220px",
+        }}
+      />
+      <div
+        aria-hidden="true"
         className="pointer-events-none absolute top-16 right-8 h-10 w-10 animate-spin-slow rounded-full border-2 border-dashed border-teal/25 sm:right-16"
       />
       <div

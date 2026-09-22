@@ -51,7 +51,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             />
           </Link>
         </header>
-        <div className="relative flex flex-1 flex-col">{children}</div>
+        <div className="relative mx-auto flex w-full max-w-md flex-1 flex-col">{children}</div>
       </body>
     </html>
   );
