@@ -55,7 +55,7 @@ export default function CuriousPage() {
       </div>
 
       <div className="mt-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
-        <TasteExperience onComplete={() => setTasteComplete(true)} />
+        <TasteExperience path="curious" onComplete={() => setTasteComplete(true)} />
       </div>
 
       {tasteComplete && (

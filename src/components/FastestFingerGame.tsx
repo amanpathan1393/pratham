@@ -6,7 +6,7 @@ const ROWS = ["s", "t", "p", "n", "c"] as const;
 const COLS = ["at", "ap", "an"] as const;
 const TARGET_ROW = "c";
 const TARGET_COL = "at";
-const COUNTDOWN_SECONDS = 15;
+const COUNTDOWN_SECONDS = 10;
 
 // Row/column indices of the target cell within the grid (0-based), used to
 // place the guided-trace highlight bars via CSS Grid placement.
@@ -24,7 +24,13 @@ const ROW_PULSE_MS = 450;
 const ROW_SLIDE_MS = 450;
 const COL_SLIDE_MS = 350;
 
-export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
+type GameResult = "won" | "timeout";
+
+export function FastestFingerGame({
+  onComplete,
+}: {
+  onComplete?: (result: GameResult) => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const [tracePhase, setTracePhase] = useState<TracePhase>("row-pulse");
@@ -87,7 +93,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
 
   useEffect(() => {
     if (status === "won" || status === "timeout") {
-      onComplete?.();
+      onComplete?.(status);
     }
     // Only fire once, the moment the round ends either way.
     // eslint-disable-next-line react-hooks/exhaustive-deps

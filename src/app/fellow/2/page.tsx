@@ -120,6 +120,7 @@ export default function FellowStepTwo() {
       {loaded && (
         <div className="mt-8 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
           <TasteExperience
+            path="fellow"
             skipGame={skipGame}
             onComplete={() => setTasteComplete(true)}
           />
