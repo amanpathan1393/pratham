@@ -6,6 +6,7 @@ import { SpotTheDifference } from "@/components/SpotTheDifference";
 import { WhichIsLater } from "@/components/WhichIsLater";
 import { RegroupClass } from "@/components/RegroupClass";
 import { KitReveal } from "@/components/KitReveal";
+import { SpeakingLadder } from "@/components/SpeakingLadder";
 import { insertGameResult } from "@/lib/gameResults";
 
 export const GAME_PLAYED_KEY = "step-by-step-english.taste.game-played";
@@ -36,12 +37,19 @@ const BEFORE_TEXT: Record<ChallengeId, string> = {
   "engagement-between-sessions": "Interest fades once the session ends.",
 };
 
-type InteractiveKind = "game" | "kit-reveal" | "which-is-later" | "regroup" | "spot-the-difference";
+type InteractiveKind =
+  | "game"
+  | "kit-reveal"
+  | "which-is-later"
+  | "regroup"
+  | "spot-the-difference"
+  | "speaking-ladder";
 
-// Every path except hesitant-to-speak gets a hands-on moment between its
-// before and after panels — the thing itself, not a description of it.
-const INTERACTIVE_FOR: Partial<Record<ChallengeId, InteractiveKind>> = {
+// Every one of the 6 paths gets a hands-on moment between its before and
+// after panels — the thing itself, not a description of it.
+const INTERACTIVE_FOR: Record<ChallengeId, InteractiveKind> = {
   "reading-and-skill-levels": "game",
+  "hesitant-to-speak": "speaking-ladder",
   "materials-and-prep-time": "kit-reveal",
   "no-progress-tracking": "which-is-later",
   "large-class-sizes": "regroup",
@@ -54,6 +62,7 @@ const INTERACTIVE_LABEL: Record<InteractiveKind, string> = {
   "which-is-later": "Try it yourself",
   regroup: "Try it yourself",
   "spot-the-difference": "Try it yourself",
+  "speaking-ladder": "Try it yourself",
 };
 
 /**
@@ -179,6 +188,9 @@ function ChallengePath({
           {interactiveKind === "regroup" && <RegroupClass onComplete={handleInteractionDone} />}
           {interactiveKind === "spot-the-difference" && (
             <SpotTheDifference onComplete={handleInteractionDone} />
+          )}
+          {interactiveKind === "speaking-ladder" && (
+            <SpeakingLadder onComplete={handleInteractionDone} />
           )}
         </div>
       )}
