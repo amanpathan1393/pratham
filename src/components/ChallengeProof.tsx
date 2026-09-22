@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { FastestFingerGame } from "@/components/FastestFingerGame";
+import { SpotTheDifference } from "@/components/SpotTheDifference";
+import { WhichIsLater } from "@/components/WhichIsLater";
+import { RegroupClass } from "@/components/RegroupClass";
+import { KitReveal } from "@/components/KitReveal";
 import { insertGameResult } from "@/lib/gameResults";
 
 export const GAME_PLAYED_KEY = "step-by-step-english.taste.game-played";
@@ -30,6 +34,26 @@ const BEFORE_TEXT: Record<ChallengeId, string> = {
   "no-progress-tracking": "No way to know if it's working.",
   "large-class-sizes": "One pace for the whole room.",
   "engagement-between-sessions": "Interest fades once the session ends.",
+};
+
+type InteractiveKind = "game" | "kit-reveal" | "which-is-later" | "regroup" | "spot-the-difference";
+
+// Every path except hesitant-to-speak gets a hands-on moment between its
+// before and after panels — the thing itself, not a description of it.
+const INTERACTIVE_FOR: Partial<Record<ChallengeId, InteractiveKind>> = {
+  "reading-and-skill-levels": "game",
+  "materials-and-prep-time": "kit-reveal",
+  "no-progress-tracking": "which-is-later",
+  "large-class-sizes": "regroup",
+  "engagement-between-sessions": "spot-the-difference",
+};
+
+const INTERACTIVE_LABEL: Record<InteractiveKind, string> = {
+  game: "What daily practice looks like",
+  "kit-reveal": "Try it yourself",
+  "which-is-later": "Try it yourself",
+  regroup: "Try it yourself",
+  "spot-the-difference": "Try it yourself",
 };
 
 /**
@@ -111,8 +135,9 @@ function ChallengePath({
   skipGame: boolean;
   onDone: () => void;
 }) {
-  const isGamePath = id === "reading-and-skill-levels";
-  const [afterShown, setAfterShown] = useState(!isGamePath || skipGame);
+  const interactiveKind = INTERACTIVE_FOR[id];
+  const isGamePath = interactiveKind === "game";
+  const [afterShown, setAfterShown] = useState(!interactiveKind || (isGamePath && skipGame));
 
   useEffect(() => {
     if (afterShown) onDone();
@@ -132,16 +157,29 @@ function ChallengePath({
     onDone();
   }
 
+  function handleInteractionDone() {
+    setAfterShown(true);
+    onDone();
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <TextPanel tone="before">{BEFORE_TEXT[id]}</TextPanel>
 
-      {isGamePath && !afterShown && (
+      {interactiveKind && !afterShown && (
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold tracking-wide text-secondary uppercase">
-            What daily practice looks like
+            {INTERACTIVE_LABEL[interactiveKind]}
           </p>
-          <FastestFingerGame onComplete={handleGameComplete} />
+          {interactiveKind === "game" && <FastestFingerGame onComplete={handleGameComplete} />}
+          {interactiveKind === "kit-reveal" && <KitReveal onComplete={handleInteractionDone} />}
+          {interactiveKind === "which-is-later" && (
+            <WhichIsLater onComplete={handleInteractionDone} />
+          )}
+          {interactiveKind === "regroup" && <RegroupClass onComplete={handleInteractionDone} />}
+          {interactiveKind === "spot-the-difference" && (
+            <SpotTheDifference onComplete={handleInteractionDone} />
+          )}
         </div>
       )}
 
@@ -168,17 +206,9 @@ function AfterPanel({ id }: { id: ChallengeId }) {
       return <TextPanel tone="after">{RAJ_REEMA}</TextPanel>;
     case "materials-and-prep-time":
       return (
-        <Panel tone="after">
-          <IconRow
-            items={[
-              { icon: <DocumentIcon />, label: "Session guides" },
-              { icon: <PlayIcon />, label: "Activity videos" },
-              { icon: <BlocksIcon />, label: "TLMs" },
-              { icon: <ChecklistIcon />, label: "Assessment tools" },
-              { icon: <BookIcon />, label: "Handbook" },
-            ]}
-          />
-        </Panel>
+        <TextPanel tone="after">
+          Every session shows up ready — nothing built from scratch, nothing missing.
+        </TextPanel>
       );
     case "no-progress-tracking":
       return (
@@ -198,7 +228,8 @@ function AfterPanel({ id }: { id: ChallengeId }) {
     case "engagement-between-sessions":
       return (
         <TextPanel tone="after">
-          Workbook games and a practice website keep them coming back.
+          That&apos;s a real workbook game — plus a practice website, so it doesn&apos;t stop
+          when the session ends.
         </TextPanel>
       );
   }
@@ -223,24 +254,6 @@ function TextPanel({ tone, children }: { tone: "before" | "after"; children: Rea
     <Panel tone={tone}>
       <p className="leading-relaxed">&ldquo;{children}&rdquo;</p>
     </Panel>
-  );
-}
-
-function IconRow({ items }: { items: { icon: React.ReactNode; label: string }[] }) {
-  return (
-    <div className="flex flex-wrap gap-3">
-      {items.map((item) => (
-        <div
-          key={item.label}
-          className="flex min-w-[84px] flex-1 flex-col items-center gap-2 rounded-lg bg-white/60 px-3 py-3 text-center"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-teal">
-            {item.icon}
-          </span>
-          <span className="text-xs font-semibold text-secondary">{item.label}</span>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -270,61 +283,3 @@ function Timeline({ points }: { points: string[] }) {
   );
 }
 
-function iconProps() {
-  return {
-    viewBox: "0 0 24 24",
-    className: "h-4.5 w-4.5",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.6,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-}
-
-function DocumentIcon() {
-  return (
-    <svg {...iconProps()}>
-      <path d="M6 3h8l4 4v14H6z" />
-      <path d="M14 3v4h4M9 12h6M9 16h6" />
-    </svg>
-  );
-}
-
-function PlayIcon() {
-  return (
-    <svg {...iconProps()}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M10 8.5l6 3.5-6 3.5z" />
-    </svg>
-  );
-}
-
-function BlocksIcon() {
-  return (
-    <svg {...iconProps()}>
-      <rect x="4" y="4" width="7" height="7" rx="1.2" />
-      <rect x="13" y="4" width="7" height="7" rx="1.2" />
-      <rect x="4" y="13" width="7" height="7" rx="1.2" />
-      <rect x="13" y="13" width="7" height="7" rx="1.2" />
-    </svg>
-  );
-}
-
-function ChecklistIcon() {
-  return (
-    <svg {...iconProps()}>
-      <path d="M5 4h14v16H5z" />
-      <path d="M8.5 10l1.5 1.5L13 8.5M8.5 16h7" />
-    </svg>
-  );
-}
-
-function BookIcon() {
-  return (
-    <svg {...iconProps()}>
-      <path d="M4 5.5C4 4.7 4.7 4 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5z" />
-      <path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H12v16h6.5a1.5 1.5 0 0 0 1.5-1.5z" />
-    </svg>
-  );
-}
