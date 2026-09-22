@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 const ROWS = ["s", "t", "p", "n", "c"] as const;
 const COLS = ["at", "ap", "an"] as const;
@@ -25,6 +25,8 @@ const ROW_SLIDE_MS = 450;
 const COL_SLIDE_MS = 350;
 
 export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const [tracePhase, setTracePhase] = useState<TracePhase>("row-pulse");
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS);
   const [won, setWon] = useState(false);
@@ -41,8 +43,28 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
           ? "timeout"
           : "playing";
 
+  // Don't start the trace (and therefore the countdown) until the game has
+  // actually scrolled into view — otherwise the timer burns down while the
+  // visitor is still reading the content above it on fellow/2.
+  useEffect(() => {
+    if (hasBeenVisible) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasBeenVisible(true);
+        }
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasBeenVisible]);
+
   // Play the guided trace once, automatically, before the countdown starts.
   useEffect(() => {
+    if (!hasBeenVisible) return;
     if (tracePhase === "row-pulse") {
       const t = setTimeout(() => setTracePhase("row-slide"), ROW_PULSE_MS);
       return () => clearTimeout(t);
@@ -55,7 +77,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
       const t = setTimeout(() => setTracePhase("done"), COL_SLIDE_MS);
       return () => clearTimeout(t);
     }
-  }, [tracePhase]);
+  }, [tracePhase, hasBeenVisible]);
 
   useEffect(() => {
     if (status !== "playing") return;
@@ -90,7 +112,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
   const cellsDisabled = status !== "playing";
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm">
+    <div ref={containerRef} className="rounded-xl bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <p className="text-base font-semibold text-primary">
           Tap <span className="text-teal">CAT</span> before time runs out.
@@ -106,7 +128,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
         className="relative mt-4 grid gap-1.5"
         style={{ gridTemplateColumns: `32px repeat(${COLS.length}, 1fr)` }}
       >
-        {status === "tracing" && (
+        {status === "tracing" && hasBeenVisible && (
           <>
             <div
               aria-hidden="true"
@@ -139,6 +161,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
         {COLS.map((col) => {
           const isTraceColActive =
             status === "tracing" &&
+            hasBeenVisible &&
             col === TARGET_COL &&
             tracePhase === "col-slide";
           return (
@@ -154,7 +177,8 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
         })}
 
         {ROWS.map((row) => {
-          const isTraceRowActive = status === "tracing" && row === TARGET_ROW;
+          const isTraceRowActive =
+            status === "tracing" && hasBeenVisible && row === TARGET_ROW;
           return (
             <Fragment key={row}>
               <div

@@ -11,12 +11,7 @@ import { StepDots } from "@/components/StepDots";
 const TOTAL_STEPS = 3;
 const CURRENT_STEP = 3;
 
-const HELP_OPTIONS = [
-  "Try it in my classroom",
-  "Explore it outside my classroom",
-  "Talk to the team first",
-  "Just send me resources",
-] as const;
+const HELP_OPTIONS = ["Try it in my classroom", "Talk to the team first"] as const;
 
 type FormState = {
   name: string;
