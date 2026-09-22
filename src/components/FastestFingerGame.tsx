@@ -6,7 +6,7 @@ const ROWS = ["s", "t", "p", "n", "c"] as const;
 const COLS = ["at", "ap", "an"] as const;
 const TARGET_ROW = "c";
 const TARGET_COL = "at";
-const COUNTDOWN_SECONDS = 5;
+const COUNTDOWN_SECONDS = 15;
 
 // Row/column indices of the target cell within the grid (0-based), used to
 // place the guided-trace highlight bars via CSS Grid placement.
@@ -56,7 +56,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
           setHasBeenVisible(true);
         }
       },
-      { threshold: 0.4 },
+      { threshold: 1 },
     );
     observer.observe(el);
     return () => observer.disconnect();
