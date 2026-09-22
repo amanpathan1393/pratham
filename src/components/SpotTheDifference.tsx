@@ -4,11 +4,15 @@ import { useEffect, useState } from "react";
 
 const COUNT = 6;
 const TIME_SECONDS = 8;
-const MATCH_WORD = "CAT";
-const ODD_WORD = "BAT";
+// A real "-at" word family, same phonics pattern as the CAT game's own
+// at/ap/an columns — the odd word breaks the rhyme, not just the shape.
+const FAMILY_WORDS = ["CAT", "BAT", "HAT", "MAT", "SAT"];
+const ODD_WORD = "CAP";
 
 export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
   const [oddIndex] = useState(() => Math.floor(Math.random() * COUNT));
+  const words = FAMILY_WORDS.slice();
+  words.splice(oddIndex, 0, ODD_WORD);
   const [secondsLeft, setSecondsLeft] = useState(TIME_SECONDS);
   const [won, setWon] = useState(false);
   const [wrongIndex, setWrongIndex] = useState<number | null>(null);
@@ -85,7 +89,7 @@ export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
                   isOdd && revealed ? "text-gold" : "text-primary"
                 }`}
               >
-                {isOdd ? ODD_WORD : MATCH_WORD}
+                {words[i]}
               </span>
             </button>
           );
@@ -95,8 +99,8 @@ export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
       {revealed && (
         <p className="mt-4 animate-fade-in-up text-sm text-secondary">
           {status === "won"
-            ? "Spotted it — same muscle every flashcard round builds: read the whole word, not just the shape."
-            : `That one said "${ODD_WORD}", not "${MATCH_WORD}". Small differences, real attention.`}
+            ? `Spotted it — cat, bat, hat, mat, sat all rhyme. "${ODD_WORD}" doesn't.`
+            : `"${ODD_WORD}" breaks the rhyme — everything else ends in "-at".`}
         </p>
       )}
     </div>
