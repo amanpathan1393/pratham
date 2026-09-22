@@ -1,6 +1,6 @@
 # Step by Step English
 
-A Pratham/PraDigi programme web project. Built with Next.js (App Router), TypeScript, and Tailwind CSS.
+A PraDigi programme web project. Built with Next.js (App Router), TypeScript, and Tailwind CSS.
 
 This is an independent project — not related to tfipack.org, the TFI Pune Alumni Chapter site, or their Supabase/Vercel projects.
 

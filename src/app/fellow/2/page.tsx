@@ -9,7 +9,7 @@ import {
   STEP1_STORAGE_KEY,
   type Challenge,
 } from "@/lib/challenges";
-import { TasteExperience } from "@/components/TasteExperience";
+import { TasteExperience, GAME_PLAYED_KEY } from "@/components/TasteExperience";
 import { StepDots } from "@/components/StepDots";
 import { ctaClass } from "@/lib/theme";
 
@@ -27,15 +27,18 @@ export default function FellowStepTwo() {
   const [step1Selection, setStep1Selection] = useState<{
     loaded: boolean;
     matchedChallenges: Challenge[];
-  }>({ loaded: false, matchedChallenges: [] });
+    skipGame: boolean;
+  }>({ loaded: false, matchedChallenges: [], skipGame: false });
   const [tasteComplete, setTasteComplete] = useState(false);
-  const { loaded, matchedChallenges } = step1Selection;
+  const { loaded, matchedChallenges, skipGame } = step1Selection;
 
   useEffect(() => {
     let ids: string[] = [];
+    let gamePlayed = false;
     try {
       const raw = sessionStorage.getItem(STEP1_STORAGE_KEY);
       if (raw) ids = JSON.parse(raw);
+      gamePlayed = sessionStorage.getItem(GAME_PLAYED_KEY) === "true";
     } catch {
       ids = [];
     }
@@ -45,6 +48,7 @@ export default function FellowStepTwo() {
     setStep1Selection({
       loaded: true,
       matchedChallenges: CHALLENGES.filter((c) => ids.includes(c.id)),
+      skipGame: gamePlayed,
     });
   }, []);
 
@@ -113,9 +117,14 @@ export default function FellowStepTwo() {
         </div>
       )}
 
-      <div className="mt-8 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-        <TasteExperience onComplete={() => setTasteComplete(true)} />
-      </div>
+      {loaded && (
+        <div className="mt-8 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+          <TasteExperience
+            skipGame={skipGame}
+            onComplete={() => setTasteComplete(true)}
+          />
+        </div>
+      )}
 
       {tasteComplete && (
         <div className="mt-6 animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">

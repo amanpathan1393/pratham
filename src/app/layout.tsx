@@ -11,7 +11,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Step by Step English",
-  description: "Step by Step English — a Pratham/PraDigi programme",
+  description: "Step by Step English — a PraDigi programme",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

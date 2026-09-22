@@ -13,7 +13,7 @@ export default function Home() {
     <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-10">
       <div className="animate-fade-in-up text-center">
         <span className="inline-block rounded-full bg-gold/15 px-3 py-1 text-xs font-bold tracking-wide text-gold uppercase">
-          A Pratham / PraDigi programme
+          A PraDigi programme
         </span>
         <h1 className="mt-4 text-4xl font-bold tracking-tight text-primary">
           Step by Step English

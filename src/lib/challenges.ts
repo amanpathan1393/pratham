@@ -69,5 +69,5 @@ export const CHALLENGES: Challenge[] = [
 
 export const STEP1_STORAGE_KEY = "step-by-step-english.fellow.step1-challenges";
 
-// Set to true once Pratham/PraDigi sign off on the solution copy above.
+// Set to true once PraDigi sign off on the solution copy above.
 export const CONTENT_REVIEWED = false;

@@ -8,16 +8,54 @@ const TARGET_ROW = "c";
 const TARGET_COL = "at";
 const COUNTDOWN_SECONDS = 5;
 
-type Status = "playing" | "won" | "timeout";
+// Row/column indices of the target cell within the grid (0-based), used to
+// place the guided-trace highlight bars via CSS Grid placement.
+const TARGET_ROW_INDEX = ROWS.indexOf(TARGET_ROW);
+const TARGET_COL_INDEX = COLS.indexOf(TARGET_COL);
+// +2 on each: +1 for the header row/label column, +1 because CSS Grid lines
+// are 1-indexed.
+const TARGET_GRID_ROW = TARGET_ROW_INDEX + 2;
+const TARGET_GRID_COL = TARGET_COL_INDEX + 2;
+
+type TracePhase = "row-pulse" | "row-slide" | "col-slide" | "done";
+type Status = "tracing" | "playing" | "won" | "timeout";
+
+const ROW_PULSE_MS = 450;
+const ROW_SLIDE_MS = 450;
+const COL_SLIDE_MS = 350;
 
 export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
+  const [tracePhase, setTracePhase] = useState<TracePhase>("row-pulse");
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS);
   const [won, setWon] = useState(false);
   const [shakeCell, setShakeCell] = useState<string | null>(null);
 
   // Derived rather than its own state: avoids setting it imperatively from
   // inside the timer effect below.
-  const status: Status = won ? "won" : secondsLeft <= 0 ? "timeout" : "playing";
+  const status: Status =
+    tracePhase !== "done"
+      ? "tracing"
+      : won
+        ? "won"
+        : secondsLeft <= 0
+          ? "timeout"
+          : "playing";
+
+  // Play the guided trace once, automatically, before the countdown starts.
+  useEffect(() => {
+    if (tracePhase === "row-pulse") {
+      const t = setTimeout(() => setTracePhase("row-slide"), ROW_PULSE_MS);
+      return () => clearTimeout(t);
+    }
+    if (tracePhase === "row-slide") {
+      const t = setTimeout(() => setTracePhase("col-slide"), ROW_SLIDE_MS);
+      return () => clearTimeout(t);
+    }
+    if (tracePhase === "col-slide") {
+      const t = setTimeout(() => setTracePhase("done"), COL_SLIDE_MS);
+      return () => clearTimeout(t);
+    }
+  }, [tracePhase]);
 
   useEffect(() => {
     if (status !== "playing") return;
@@ -26,7 +64,7 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
   }, [status, secondsLeft]);
 
   useEffect(() => {
-    if (status !== "playing") {
+    if (status === "won" || status === "timeout") {
       onComplete?.();
     }
     // Only fire once, the moment the round ends either way.
@@ -48,7 +86,8 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
     }
   }
 
-  const isRevealed = status !== "playing";
+  const isRevealed = status === "won" || status === "timeout";
+  const cellsDisabled = status !== "playing";
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm">
@@ -59,62 +98,109 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
         <CountdownRing
           secondsLeft={secondsLeft}
           total={COUNTDOWN_SECONDS}
-          active={status === "playing"}
+          status={status}
         />
       </div>
 
       <div
-        className="mt-4 grid gap-1.5"
+        className="relative mt-4 grid gap-1.5"
         style={{ gridTemplateColumns: `32px repeat(${COLS.length}, 1fr)` }}
       >
+        {status === "tracing" && (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute z-10 rounded-md bg-teal/25 transition-transform ease-out"
+              style={{
+                gridRow: TARGET_GRID_ROW,
+                gridColumn: `1 / ${TARGET_GRID_COL + 1}`,
+                transformOrigin: "left",
+                transform:
+                  tracePhase === "row-pulse" ? "scaleX(0)" : "scaleX(1)",
+                transitionDuration: `${ROW_SLIDE_MS}ms`,
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute z-10 rounded-md bg-teal/25 transition-transform ease-out"
+              style={{
+                gridColumn: TARGET_GRID_COL,
+                gridRow: `1 / ${TARGET_GRID_ROW + 1}`,
+                transformOrigin: "top",
+                transform:
+                  tracePhase === "col-slide" ? "scaleY(1)" : "scaleY(0)",
+                transitionDuration: `${COL_SLIDE_MS}ms`,
+              }}
+            />
+          </>
+        )}
+
         <div />
-        {COLS.map((col) => (
-          <div
-            key={`col-${col}`}
-            className="flex items-center justify-center text-sm font-semibold text-secondary"
-          >
-            {col}
-          </div>
-        ))}
-
-        {ROWS.map((row) => (
-          <Fragment key={row}>
-            <div className="flex items-center justify-center text-sm font-semibold text-secondary">
-              {row}
+        {COLS.map((col) => {
+          const isTraceColActive =
+            status === "tracing" &&
+            col === TARGET_COL &&
+            tracePhase === "col-slide";
+          return (
+            <div
+              key={`col-${col}`}
+              className={`flex items-center justify-center text-sm font-semibold transition-colors ${
+                isTraceColActive ? "text-teal" : "text-secondary"
+              }`}
+            >
+              {col}
             </div>
-            {COLS.map((col) => {
-              const word = row + col;
-              const isTarget = row === TARGET_ROW && col === TARGET_COL;
-              const showAnswer = isRevealed && isTarget;
-              const isWinningCell = showAnswer && status === "won";
-              const isTimeoutReveal = showAnswer && status === "timeout";
+          );
+        })}
 
-              return (
-                <button
-                  key={word}
-                  type="button"
-                  onClick={() => handleTap(row, col)}
-                  disabled={isRevealed}
-                  className={`relative flex min-h-11 items-center justify-center gap-1 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
-                    shakeCell === word ? "animate-shake" : ""
-                  } ${
-                    isWinningCell
-                      ? "animate-pop-in bg-gold text-white shadow-md"
-                      : isTimeoutReveal
-                        ? "bg-teal/10 text-teal shadow-none"
-                        : isRevealed
-                          ? "bg-inactive text-muted shadow-none"
-                          : "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
-                  }`}
-                >
-                  {word}
-                  {showAnswer && <CheckIcon />}
-                  {isWinningCell && <ConfettiBurst />}
-                </button>
-              );
-            })}
-          </Fragment>
-        ))}
+        {ROWS.map((row) => {
+          const isTraceRowActive = status === "tracing" && row === TARGET_ROW;
+          return (
+            <Fragment key={row}>
+              <div
+                className={`flex items-center justify-center text-sm font-semibold transition-colors ${
+                  isTraceRowActive
+                    ? `text-teal ${tracePhase === "row-pulse" ? "animate-pop-in" : ""}`
+                    : "text-secondary"
+                }`}
+              >
+                {row}
+              </div>
+              {COLS.map((col) => {
+                const word = row + col;
+                const isTarget = row === TARGET_ROW && col === TARGET_COL;
+                const showAnswer = isRevealed && isTarget;
+                const isWinningCell = showAnswer && status === "won";
+                const isTimeoutReveal = showAnswer && status === "timeout";
+                const isInviting = isTarget && status === "playing";
+
+                return (
+                  <button
+                    key={word}
+                    type="button"
+                    onClick={() => handleTap(row, col)}
+                    disabled={cellsDisabled}
+                    className={`relative flex min-h-11 items-center justify-center gap-1 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
+                      shakeCell === word ? "animate-shake" : ""
+                    } ${isInviting ? "animate-gentle-pulse" : ""} ${
+                      isWinningCell
+                        ? "animate-pop-in bg-gold text-white shadow-md"
+                        : isTimeoutReveal
+                          ? "bg-teal/10 text-teal shadow-none"
+                          : status === "playing" || status === "tracing"
+                            ? "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
+                            : "bg-inactive text-muted shadow-none"
+                    }`}
+                  >
+                    {word}
+                    {showAnswer && <CheckIcon />}
+                    {isWinningCell && <ConfettiBurst />}
+                  </button>
+                );
+              })}
+            </Fragment>
+          );
+        })}
       </div>
 
       {isRevealed && (
@@ -130,16 +216,19 @@ export function FastestFingerGame({ onComplete }: { onComplete?: () => void }) {
 function CountdownRing({
   secondsLeft,
   total,
-  active,
+  status,
 }: {
   secondsLeft: number;
   total: number;
-  active: boolean;
+  status: Status;
 }) {
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
-  const progress = active ? secondsLeft / total : 0;
-  const isUrgent = active && secondsLeft <= 2;
+  const progress =
+    status === "playing" ? secondsLeft / total : status === "tracing" ? 1 : 0;
+  const displayValue =
+    status === "tracing" ? total : status === "playing" ? secondsLeft : 0;
+  const isUrgent = status === "playing" && secondsLeft <= 2;
 
   return (
     <div
@@ -170,7 +259,7 @@ function CountdownRing({
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-primary">
-        {active ? secondsLeft : "0"}
+        {displayValue}
       </div>
     </div>
   );
