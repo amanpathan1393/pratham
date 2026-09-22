@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { TasteExperience } from "@/components/TasteExperience";
+import { ChallengeProofList } from "@/components/ChallengeProof";
 import { insertSubmission } from "@/lib/submissions";
 import { Honeypot } from "@/components/Honeypot";
 import { ctaClass } from "@/lib/theme";
@@ -55,7 +55,12 @@ export default function CuriousPage() {
       </div>
 
       <div className="mt-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
-        <TasteExperience path="curious" onComplete={() => setTasteComplete(true)} />
+        <ChallengeProofList
+          path="curious"
+          challengeIds={["reading-and-skill-levels"]}
+          gamePlayed={false}
+          onComplete={() => setTasteComplete(true)}
+        />
       </div>
 
       {tasteComplete && (

@@ -7,11 +7,9 @@ import {
   CHALLENGES,
   CONTENT_REVIEWED,
   STEP1_STORAGE_KEY,
-  selectActivity,
-  type ActivityPlan,
   type Challenge,
 } from "@/lib/challenges";
-import { TasteExperience, GAME_PLAYED_KEY } from "@/components/TasteExperience";
+import { ChallengeProofList, GAME_PLAYED_KEY } from "@/components/ChallengeProof";
 import { StepDots } from "@/components/StepDots";
 import { ctaClass } from "@/lib/theme";
 
@@ -29,10 +27,11 @@ export default function FellowStepTwo() {
   const [step1Selection, setStep1Selection] = useState<{
     loaded: boolean;
     matchedChallenges: Challenge[];
-    plan: ActivityPlan;
-  }>({ loaded: false, matchedChallenges: [], plan: { kind: "game" } });
+    challengeIds: string[];
+    gamePlayed: boolean;
+  }>({ loaded: false, matchedChallenges: [], challengeIds: [], gamePlayed: false });
   const [tasteComplete, setTasteComplete] = useState(false);
-  const { loaded, matchedChallenges, plan } = step1Selection;
+  const { loaded, matchedChallenges, challengeIds, gamePlayed } = step1Selection;
 
   useEffect(() => {
     let ids: string[] = [];
@@ -44,20 +43,14 @@ export default function FellowStepTwo() {
     } catch {
       ids = [];
     }
-    let plan = selectActivity(ids);
-    // Never replay the game if it was already played (e.g. via /curious
-    // first) — fall back to the reveal instead of the fact-reveals, since
-    // that's the closest "already proven" equivalent to the game.
-    if (gamePlayed && plan.kind === "game") {
-      plan = { kind: "reveal" };
-    }
     // sessionStorage only exists client-side, so this one-time read has to
     // happen post-mount rather than during render.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStep1Selection({
       loaded: true,
       matchedChallenges: CHALLENGES.filter((c) => ids.includes(c.id)),
-      plan,
+      challengeIds: ids,
+      gamePlayed,
     });
   }, []);
 
@@ -128,22 +121,12 @@ export default function FellowStepTwo() {
 
       {loaded && (
         <div className="mt-8 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-          <TasteExperience
+          <ChallengeProofList
             path="fellow"
-            plan={plan}
+            challengeIds={challengeIds}
+            gamePlayed={gamePlayed}
             onComplete={() => setTasteComplete(true)}
           />
-        </div>
-      )}
-
-      {tasteComplete && (
-        <div className="mt-6 animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">
-          <p className="leading-relaxed text-primary">
-            One pilot took learners with strong reading skills from{" "}
-            <span className="font-bold">12% to 80%</span>, and cut the lowest
-            reading band from <span className="font-bold">63% to 7%</span>.
-          </p>
-          <p className="mt-1 text-sm text-secondary">(539 learners)</p>
         </div>
       )}
 

@@ -213,13 +213,15 @@ export function FastestFingerGame({
                     className={`relative flex min-h-11 items-center justify-center gap-1 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
                       shakeCell === word ? "animate-shake" : ""
                     } ${isInviting ? "animate-gentle-pulse" : ""} ${
-                      isWinningCell
-                        ? "animate-pop-in bg-gold text-white shadow-md"
-                        : isTimeoutReveal
-                          ? "bg-teal/10 text-teal shadow-none"
-                          : status === "playing" || status === "tracing"
-                            ? "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
-                            : "bg-inactive text-muted shadow-none"
+                      shakeCell === word
+                        ? "bg-red-100 text-red-600"
+                        : isWinningCell
+                          ? "animate-pop-in bg-gold text-white shadow-md"
+                          : isTimeoutReveal
+                            ? "bg-teal/10 text-teal shadow-none"
+                            : status === "playing" || status === "tracing"
+                              ? "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
+                              : "bg-inactive text-muted shadow-none"
                     }`}
                   >
                     {word}
