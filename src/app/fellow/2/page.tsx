@@ -7,6 +7,7 @@ import {
   CHALLENGES,
   CONTENT_REVIEWED,
   STEP1_STORAGE_KEY,
+  challengesWantGame,
   type Challenge,
 } from "@/lib/challenges";
 import { TasteExperience, GAME_PLAYED_KEY } from "@/components/TasteExperience";
@@ -48,7 +49,7 @@ export default function FellowStepTwo() {
     setStep1Selection({
       loaded: true,
       matchedChallenges: CHALLENGES.filter((c) => ids.includes(c.id)),
-      skipGame: gamePlayed,
+      skipGame: gamePlayed || !challengesWantGame(ids),
     });
   }, []);
 
