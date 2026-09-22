@@ -2,19 +2,38 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChallengeProofList } from "@/components/ChallengeProof";
+import { FastestFingerGame } from "@/components/FastestFingerGame";
+import { SpotTheDifference } from "@/components/SpotTheDifference";
+import { RegroupClass } from "@/components/RegroupClass";
+import { markKindPlayed, ACCENT } from "@/components/ChallengeProof";
+import { insertGameResult } from "@/lib/gameResults";
 import { insertSubmission } from "@/lib/submissions";
 import { Honeypot } from "@/components/Honeypot";
 import { ctaClass } from "@/lib/theme";
 
+type SampleKind = "game" | "spot-the-difference" | "regroup";
+
 export default function CuriousPage() {
-  const [tasteComplete, setTasteComplete] = useState(false);
+  const [doneKinds, setDoneKinds] = useState<Set<SampleKind>>(new Set());
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const [honeypot, setHoneypot] = useState("");
+
+  const tasteStarted = doneKinds.size > 0;
+
+  function markDone(kind: SampleKind) {
+    markKindPlayed(kind);
+    setDoneKinds((prev) => new Set(prev).add(kind));
+  }
+
+  function handleGameComplete(result: "won" | "timeout") {
+    // Best-effort analytics ping; never blocks the UI on failure.
+    insertGameResult({ path: "curious", result }).catch(() => {});
+    markDone("game");
+  }
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,20 +69,41 @@ export default function CuriousPage() {
           See it in action
         </h1>
         <p className="mt-2 text-secondary">
-          Try this quick example from a Step by Step English lesson.
+          Step by Step English is a structured English programme TFI Fellows run in their own
+          classrooms. Try a few of the real activities learners actually use below.
         </p>
       </div>
 
-      <div className="mt-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
-        <ChallengeProofList
-          path="curious"
-          challengeIds={["reading-and-skill-levels"]}
-          gamePlayed={false}
-          onComplete={() => setTasteComplete(true)}
-        />
+      <div
+        className="mt-6 flex animate-fade-in-up flex-col gap-6"
+        style={{ animationDelay: "100ms" }}
+      >
+        <ActivityCard
+          accent="teal"
+          label="Fastest Finger First"
+          caption="What daily reading practice looks like"
+        >
+          <FastestFingerGame onComplete={handleGameComplete} />
+        </ActivityCard>
+
+        <ActivityCard
+          accent="gold"
+          label="Spot the difference"
+          caption="A real workbook game, word-family style"
+        >
+          <SpotTheDifference onComplete={() => markDone("spot-the-difference")} />
+        </ActivityCard>
+
+        <ActivityCard
+          accent="teal"
+          label="Regroup by level"
+          caption="How one classroom becomes small groups"
+        >
+          <RegroupClass onComplete={() => markDone("regroup")} />
+        </ActivityCard>
       </div>
 
-      {tasteComplete && (
+      {tasteStarted && (
         <div className="mt-6 animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">
           <h2 className="text-lg font-bold text-primary">
             Want to see how this could fit your classroom?
@@ -121,5 +161,31 @@ export default function CuriousPage() {
         </div>
       )}
     </main>
+  );
+}
+
+function ActivityCard({
+  accent,
+  label,
+  caption,
+  children,
+}: {
+  accent: keyof typeof ACCENT;
+  label: string;
+  caption: string;
+  children: React.ReactNode;
+}) {
+  const a = ACCENT[accent];
+  return (
+    <div className={`rounded-2xl border-2 ${a.border} bg-[#fdfcfa] p-4 sm:p-5`}>
+      <div className="mb-1 flex items-center gap-2">
+        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${a.dot}`} />
+        <p className={`text-xs font-bold tracking-wide uppercase ${a.label}`}>{label}</p>
+      </div>
+      <p className="mb-3 text-xs font-semibold tracking-wide text-secondary uppercase">
+        {caption}
+      </p>
+      {children}
+    </div>
   );
 }

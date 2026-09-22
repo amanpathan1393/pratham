@@ -10,9 +10,17 @@ const FAMILY_WORDS = ["CAT", "BAT", "HAT", "MAT", "SAT"];
 const ODD_WORD = "CAP";
 
 export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
-  const [oddIndex] = useState(() => Math.floor(Math.random() * COUNT));
+  // Picked client-side only: Math.random() during the initial render would
+  // produce a different value on the server than on the client's hydration
+  // pass, causing a hydration mismatch (the two renders would show the odd
+  // word in different cells).
+  const [oddIndex, setOddIndex] = useState<number | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOddIndex(Math.floor(Math.random() * COUNT));
+  }, []);
   const words = FAMILY_WORDS.slice();
-  words.splice(oddIndex, 0, ODD_WORD);
+  words.splice(oddIndex ?? 0, 0, ODD_WORD);
   const [secondsLeft, setSecondsLeft] = useState(TIME_SECONDS);
   const [won, setWon] = useState(false);
   const [wrongIndex, setWrongIndex] = useState<number | null>(null);

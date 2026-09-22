@@ -10,7 +10,31 @@ import { SpeakingLadder } from "@/components/SpeakingLadder";
 import { insertGameResult } from "@/lib/gameResults";
 import { CHALLENGES } from "@/lib/challenges";
 
-export const GAME_PLAYED_KEY = "step-by-step-english.taste.game-played";
+// Tracks which *kinds* of interactive have already been played this
+// session (not which challenge ids) — so e.g. playing the CAT game on
+// /curious means fellow/2 skips replaying CAT even if reading-and-skill-
+// levels wasn't the exact path that showed it there.
+export const PLAYED_KINDS_KEY = "step-by-step-english.taste.played-kinds";
+
+export function getPlayedKinds(): Set<InteractiveKind> {
+  try {
+    const raw = sessionStorage.getItem(PLAYED_KINDS_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw));
+  } catch {
+    return new Set();
+  }
+}
+
+export function markKindPlayed(kind: InteractiveKind) {
+  try {
+    const current = getPlayedKinds();
+    current.add(kind);
+    sessionStorage.setItem(PLAYED_KINDS_KEY, JSON.stringify([...current]));
+  } catch {
+    // sessionStorage can be unavailable (e.g. private mode); not critical.
+  }
+}
 
 // Must stay in sync with the order of CHALLENGES in lib/challenges.ts — this
 // is also the priority order used when two challenges were picked.
@@ -38,7 +62,7 @@ const BEFORE_TEXT: Record<ChallengeId, string> = {
   "engagement-between-sessions": "Interest fades once the session ends.",
 };
 
-type InteractiveKind =
+export type InteractiveKind =
   | "game"
   | "kit-reveal"
   | "progress-reveal"
@@ -73,12 +97,12 @@ const INTERACTIVE_LABEL: Record<InteractiveKind, string> = {
 export function ChallengeProofList({
   challengeIds,
   path,
-  gamePlayed,
+  playedKinds,
   onComplete,
 }: {
   challengeIds: string[];
   path: "fellow" | "curious";
-  gamePlayed: boolean;
+  playedKinds: Set<InteractiveKind>;
   onComplete?: () => void;
 }) {
   const known = new Set<string>(CHALLENGE_ORDER);
@@ -126,7 +150,7 @@ export function ChallengeProofList({
           key={id}
           id={id}
           path={path}
-          skipGame={gamePlayed}
+          playedKinds={playedKinds}
           accent={i % 2 === 0 ? "teal" : "gold"}
           onDone={() => setDoneIds((prev) => new Set(prev).add(id))}
         />
@@ -135,7 +159,9 @@ export function ChallengeProofList({
   );
 }
 
-const ACCENT = {
+// Exported for reuse by /curious's activity sampler, which wants the same
+// bordered-card-with-a-labelled-dot look without the before/after wrapper.
+export const ACCENT = {
   teal: { dot: "bg-teal", border: "border-teal/25", label: "text-teal" },
   gold: { dot: "bg-gold", border: "border-gold/40", label: "text-gold" },
 } as const;
@@ -143,19 +169,20 @@ const ACCENT = {
 function ChallengePath({
   id,
   path,
-  skipGame,
+  playedKinds,
   accent,
   onDone,
 }: {
   id: ChallengeId;
   path: "fellow" | "curious";
-  skipGame: boolean;
+  playedKinds: Set<InteractiveKind>;
   accent: keyof typeof ACCENT;
   onDone: () => void;
 }) {
   const interactiveKind = INTERACTIVE_FOR[id];
   const isGamePath = interactiveKind === "game";
-  const [afterShown, setAfterShown] = useState(!interactiveKind || (isGamePath && skipGame));
+  const alreadyPlayed = playedKinds.has(interactiveKind);
+  const [afterShown, setAfterShown] = useState(!interactiveKind || alreadyPlayed);
   const label = CHALLENGES.find((c) => c.id === id)?.label ?? id;
   const a = ACCENT[accent];
 
@@ -166,11 +193,7 @@ function ChallengePath({
   }, []);
 
   function handleGameComplete(result: "won" | "timeout") {
-    try {
-      sessionStorage.setItem(GAME_PLAYED_KEY, "true");
-    } catch {
-      // sessionStorage can be unavailable (e.g. private mode); not critical.
-    }
+    markKindPlayed("game");
     // Best-effort analytics ping; never blocks the UI on failure.
     insertGameResult({ path, result }).catch(() => {});
     setAfterShown(true);
@@ -178,6 +201,7 @@ function ChallengePath({
   }
 
   function handleInteractionDone() {
+    if (interactiveKind) markKindPlayed(interactiveKind);
     setAfterShown(true);
     onDone();
   }

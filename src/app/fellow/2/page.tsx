@@ -9,7 +9,11 @@ import {
   STEP1_STORAGE_KEY,
   type Challenge,
 } from "@/lib/challenges";
-import { ChallengeProofList, GAME_PLAYED_KEY } from "@/components/ChallengeProof";
+import {
+  ChallengeProofList,
+  getPlayedKinds,
+  type InteractiveKind,
+} from "@/components/ChallengeProof";
 import { StepDots } from "@/components/StepDots";
 import { ctaClass } from "@/lib/theme";
 
@@ -28,18 +32,16 @@ export default function FellowStepTwo() {
     loaded: boolean;
     matchedChallenges: Challenge[];
     challengeIds: string[];
-    gamePlayed: boolean;
-  }>({ loaded: false, matchedChallenges: [], challengeIds: [], gamePlayed: false });
+    playedKinds: Set<InteractiveKind>;
+  }>({ loaded: false, matchedChallenges: [], challengeIds: [], playedKinds: new Set() });
   const [tasteComplete, setTasteComplete] = useState(false);
-  const { loaded, matchedChallenges, challengeIds, gamePlayed } = step1Selection;
+  const { loaded, matchedChallenges, challengeIds, playedKinds } = step1Selection;
 
   useEffect(() => {
     let ids: string[] = [];
-    let gamePlayed = false;
     try {
       const raw = sessionStorage.getItem(STEP1_STORAGE_KEY);
       if (raw) ids = JSON.parse(raw);
-      gamePlayed = sessionStorage.getItem(GAME_PLAYED_KEY) === "true";
     } catch {
       ids = [];
     }
@@ -50,7 +52,7 @@ export default function FellowStepTwo() {
       loaded: true,
       matchedChallenges: CHALLENGES.filter((c) => ids.includes(c.id)),
       challengeIds: ids,
-      gamePlayed,
+      playedKinds: getPlayedKinds(),
     });
   }, []);
 
@@ -124,7 +126,7 @@ export default function FellowStepTwo() {
           <ChallengeProofList
             path="fellow"
             challengeIds={challengeIds}
-            gamePlayed={gamePlayed}
+            playedKinds={playedKinds}
             onComplete={() => setTasteComplete(true)}
           />
         </div>
