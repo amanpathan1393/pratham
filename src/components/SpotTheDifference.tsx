@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 const COUNT = 6;
 const TIME_SECONDS = 8;
+const MATCH_WORD = "CAT";
+const ODD_WORD = "BAT";
 
 export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
   const [oddIndex] = useState(() => Math.floor(Math.random() * COUNT));
@@ -49,7 +51,7 @@ export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-base font-semibold text-primary">Spot the one that&apos;s different.</p>
+        <p className="text-base font-semibold text-primary">Spot the flashcard that&apos;s different.</p>
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold ${
             status === "playing" && secondsLeft <= 2
@@ -70,15 +72,21 @@ export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
               type="button"
               onClick={() => handleTap(i)}
               disabled={revealed}
-              className={`flex h-16 items-center justify-center rounded-lg shadow-sm transition-all duration-200 active:scale-[0.97] ${
+              className={`flex h-16 items-center justify-center rounded-lg border-2 shadow-sm transition-all duration-200 active:scale-[0.97] ${
                 wrongIndex === i
-                  ? "animate-shake bg-red-100"
+                  ? "animate-shake border-red-200 bg-red-100"
                   : isOdd && revealed
-                    ? "animate-pop-in bg-gold/20"
-                    : "bg-[#f4f2ec] hover:-translate-y-0.5 hover:bg-teal/10"
+                    ? "animate-pop-in border-gold bg-gold/20"
+                    : "border-border bg-[#f4f2ec] hover:-translate-y-0.5 hover:border-teal/30 hover:bg-teal/10"
               }`}
             >
-              <PencilIcon flipped={isOdd} highlight={isOdd && revealed} />
+              <span
+                className={`text-lg font-bold tracking-wide ${
+                  isOdd && revealed ? "text-gold" : "text-primary"
+                }`}
+              >
+                {isOdd ? ODD_WORD : MATCH_WORD}
+              </span>
             </button>
           );
         })}
@@ -87,8 +95,8 @@ export function SpotTheDifference({ onComplete }: { onComplete?: () => void }) {
       {revealed && (
         <p className="mt-4 animate-fade-in-up text-sm text-secondary">
           {status === "won"
-            ? "Spotted it — that's the same muscle these workbook games build."
-            : "That one was facing the other way. Small differences, real attention."}
+            ? "Spotted it — same muscle every flashcard round builds: read the whole word, not just the shape."
+            : `That one said "${ODD_WORD}", not "${MATCH_WORD}". Small differences, real attention.`}
         </p>
       )}
     </div>
@@ -105,24 +113,6 @@ function CheckIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function PencilIcon({ flipped, highlight }: { flipped?: boolean; highlight?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={`h-7 w-7 ${highlight ? "text-gold" : "text-teal"}`}
-      style={flipped ? { transform: "scaleX(-1)" } : undefined}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" />
-      <path d="M14 7l3 3" />
     </svg>
   );
 }

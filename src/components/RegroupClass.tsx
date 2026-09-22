@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 const GROUPS = [
-  { label: "Level 1", count: 6, dot: "bg-teal" },
-  { label: "Level 2", count: 7, dot: "bg-gold" },
-  { label: "Level 3", count: 5, dot: "bg-muted" },
+  { label: "Level 1", count: 6, dot: "bg-red-400", bg: "bg-red-50" },
+  { label: "Level 2", count: 7, dot: "bg-gold", bg: "bg-gold/10" },
+  { label: "Level 3", count: 5, dot: "bg-green-500", bg: "bg-green-50" },
 ];
 
 const TOTAL = GROUPS.reduce((sum, g) => sum + g.count, 0);
@@ -45,7 +45,7 @@ export function RegroupClass({ onComplete }: { onComplete?: () => void }) {
           {GROUPS.map((g, gi) => (
             <div
               key={g.label}
-              className="animate-pop-in rounded-lg bg-[#f4f2ec] p-3 text-center"
+              className={`animate-pop-in rounded-lg ${g.bg} p-3 text-center`}
               style={{ animationDelay: `${gi * 120}ms` }}
             >
               <div className="flex flex-wrap justify-center gap-1">
