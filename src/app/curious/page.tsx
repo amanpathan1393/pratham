@@ -8,6 +8,7 @@ import { RegroupClass } from "@/components/RegroupClass";
 import { markKindPlayed, ACCENT } from "@/components/ChallengeProof";
 import { insertActivityResult } from "@/lib/activityResults";
 import { insertSubmission } from "@/lib/submissions";
+import { sendFollowUpEmail } from "@/lib/followUpEmail";
 import { Honeypot } from "@/components/Honeypot";
 import { ctaClass } from "@/lib/theme";
 
@@ -61,6 +62,12 @@ export default function CuriousPage() {
     setSubmitError(false);
     try {
       await insertSubmission({ path: "curious", email });
+      // Best-effort; never blocks showing the success screen.
+      sendFollowUpEmail({
+        to: email,
+        subject: "Thanks for your interest in Step by Step English",
+        html: "<p>Hi,</p><p>Thanks for checking out Step by Step English! We'll follow up with more information soon.</p><p>— Aman</p>",
+      });
       setEmailSubmitted(true);
     } catch {
       setSubmitError(true);
@@ -117,7 +124,7 @@ export default function CuriousPage() {
         </ActivityCard>
       </div>
 
-      {tasteStarted && (
+      {tasteStarted && !emailSubmitted && (
         <div className="mt-6 animate-fade-in-up rounded-xl bg-gold/10 p-5 text-center shadow-sm">
           <h2 className="text-lg font-bold text-primary">
             Want to see how this could fit your classroom?
@@ -126,7 +133,7 @@ export default function CuriousPage() {
             Leave your email and we&apos;ll follow up.
           </p>
 
-          {!showEmailForm && !emailSubmitted && (
+          {!showEmailForm && (
             <button
               type="button"
               onClick={() => setShowEmailForm(true)}
@@ -136,7 +143,7 @@ export default function CuriousPage() {
             </button>
           )}
 
-          {showEmailForm && !emailSubmitted && (
+          {showEmailForm && (
             <form
               onSubmit={handleEmailSubmit}
               className="mt-4 flex flex-col gap-3"
@@ -165,15 +172,32 @@ export default function CuriousPage() {
               )}
             </form>
           )}
+        </div>
+      )}
 
-          {emailSubmitted && (
-            <p className="mt-4 text-sm text-secondary">
-              Thanks — we&apos;ll be in touch.
-            </p>
-          )}
+      {emailSubmitted && (
+        <div className="mt-6 flex animate-fade-in-up flex-col items-center gap-2 rounded-xl bg-gold/10 p-5 text-center shadow-sm">
+          <span className="animate-pop-in flex h-12 w-12 items-center justify-center rounded-full bg-teal/10 text-teal">
+            <CheckIcon />
+          </span>
+          <h2 className="text-lg font-bold text-primary">Thanks!</h2>
         </div>
       )}
     </main>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
+      <path
+        d="M5 12l4.5 4.5L19 7"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

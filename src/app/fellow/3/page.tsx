@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { STEP1_STORAGE_KEY } from "@/lib/challenges";
 import { insertSubmission } from "@/lib/submissions";
+import { sendFollowUpEmail } from "@/lib/followUpEmail";
 import { ctaClass, listRowClass } from "@/lib/theme";
 import { Honeypot } from "@/components/Honeypot";
 import { StepDots } from "@/components/StepDots";
@@ -85,6 +86,12 @@ export default function FellowStepThree() {
         grades_taught: form.gradesTaught,
         next_step: form.helpChoice,
       });
+      // Best-effort; never blocks showing the success screen.
+      sendFollowUpEmail({
+        to: form.email,
+        subject: "Thanks for your interest in Step by Step English",
+        html: `<p>Hi ${form.name},</p><p>Thanks for your interest in Step by Step English as a TFI Fellow. We'll follow up with you about what you picked.</p><p>— Aman</p>`,
+      });
       setSubmitted(true);
     } catch {
       setSubmitError(true);
@@ -103,7 +110,7 @@ export default function FellowStepThree() {
           Thanks!
         </h1>
         <p className="max-w-sm text-secondary">
-          We&apos;ll follow up with resources for what you picked.
+          We&apos;ll follow up with you about what you picked.
         </p>
         <Link
           href="/"
@@ -136,7 +143,7 @@ export default function FellowStepThree() {
           Just a few details
         </h1>
         <p className="mt-2 text-secondary">
-          So we can follow up with the right resources.
+          So we can follow up with the right next step.
         </p>
       </div>
 

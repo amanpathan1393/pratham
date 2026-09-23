@@ -4,27 +4,49 @@ import { Fragment, useEffect, useRef, useState } from "react";
 
 const ROWS = ["s", "t", "p", "n", "c"] as const;
 const COLS = ["at", "ap", "an"] as const;
-const TARGET_ROW = "c";
-const TARGET_COL = "at";
-const COUNTDOWN_SECONDS = 10;
+const TOTAL_SECONDS = 18;
+const ROUND_COUNT = 3;
+const CORRECT_FLASH_MS = 450;
 
-// Row/column indices of the target cell within the grid (0-based), used to
-// place the guided-trace highlight bars via CSS Grid placement.
-const TARGET_ROW_INDEX = ROWS.indexOf(TARGET_ROW);
-const TARGET_COL_INDEX = COLS.indexOf(TARGET_COL);
-// +2 on each: +1 for the header row/label column, +1 because CSS Grid lines
-// are 1-indexed.
-const TARGET_GRID_ROW = TARGET_ROW_INDEX + 2;
-const TARGET_GRID_COL = TARGET_COL_INDEX + 2;
+// This mirrors the actual classroom "Steps for FFF" activity: call out a
+// letter/word, learner finds it, then say what's above/below/left/right of
+// it — not just "find one fixed target."
+type Direction = "above" | "below" | "left" | "right";
+type Round = {
+  fromRow: number;
+  fromCol: number;
+  direction: Direction;
+  targetRow: number;
+  targetCol: number;
+};
 
-type TracePhase = "row-pulse" | "row-slide" | "col-slide" | "done";
-type Status = "tracing" | "playing" | "won" | "timeout";
+const DIRECTION_LABEL: Record<Direction, string> = {
+  above: "above",
+  below: "below",
+  left: "to the left of",
+  right: "to the right of",
+};
 
-const ROW_PULSE_MS = 450;
-const ROW_SLIDE_MS = 450;
-const COL_SLIDE_MS = 350;
+function randomRound(): Round {
+  const fromRow = Math.floor(Math.random() * ROWS.length);
+  const fromCol = Math.floor(Math.random() * COLS.length);
+  const options: Direction[] = [];
+  if (fromRow > 0) options.push("above");
+  if (fromRow < ROWS.length - 1) options.push("below");
+  if (fromCol > 0) options.push("left");
+  if (fromCol < COLS.length - 1) options.push("right");
+  const direction = options[Math.floor(Math.random() * options.length)];
+  let targetRow = fromRow;
+  let targetCol = fromCol;
+  if (direction === "above") targetRow -= 1;
+  else if (direction === "below") targetRow += 1;
+  else if (direction === "left") targetCol -= 1;
+  else targetCol += 1;
+  return { fromRow, fromCol, direction, targetRow, targetCol };
+}
 
 type GameResult = "won" | "timeout";
+type Status = "waiting" | "playing" | "won" | "timeout";
 
 export function FastestFingerGame({
   onComplete,
@@ -33,57 +55,46 @@ export function FastestFingerGame({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
-  const [tracePhase, setTracePhase] = useState<TracePhase>("row-pulse");
-  const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS);
-  const [won, setWon] = useState(false);
+  // Generated client-side only, post-mount: Math.random() during the
+  // initial render would produce a different value on the server than on
+  // the client's hydration pass, causing a hydration mismatch (same issue
+  // fixed earlier in SpotTheDifference).
+  const [rounds, setRounds] = useState<Round[] | null>(null);
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(TOTAL_SECONDS);
   const [shakeCell, setShakeCell] = useState<string | null>(null);
+  const [correctCell, setCorrectCell] = useState<string | null>(null);
 
-  // Derived rather than its own state: avoids setting it imperatively from
-  // inside the timer effect below.
-  const status: Status =
-    tracePhase !== "done"
-      ? "tracing"
-      : won
-        ? "won"
-        : secondsLeft <= 0
-          ? "timeout"
-          : "playing";
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRounds(Array.from({ length: ROUND_COUNT }, randomRound));
+  }, []);
 
-  // Don't start the trace (and therefore the countdown) until the game has
-  // actually scrolled into view — otherwise the timer burns down while the
-  // visitor is still reading the content above it on fellow/2.
+  const allDone = rounds !== null && roundIndex >= rounds.length;
+  const status: Status = allDone
+    ? "won"
+    : secondsLeft <= 0
+      ? "timeout"
+      : !hasBeenVisible || rounds === null
+        ? "waiting"
+        : "playing";
+
+  // Don't start the countdown until the game has actually scrolled into
+  // view — otherwise the timer burns down while the visitor is still
+  // reading the content above it on fellow/2.
   useEffect(() => {
     if (hasBeenVisible) return;
     const el = containerRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasBeenVisible(true);
-        }
+        if (entry.isIntersecting) setHasBeenVisible(true);
       },
       { threshold: 1 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasBeenVisible]);
-
-  // Play the guided trace once, automatically, before the countdown starts.
-  useEffect(() => {
-    if (!hasBeenVisible) return;
-    if (tracePhase === "row-pulse") {
-      const t = setTimeout(() => setTracePhase("row-slide"), ROW_PULSE_MS);
-      return () => clearTimeout(t);
-    }
-    if (tracePhase === "row-slide") {
-      const t = setTimeout(() => setTracePhase("col-slide"), ROW_SLIDE_MS);
-      return () => clearTimeout(t);
-    }
-    if (tracePhase === "col-slide") {
-      const t = setTimeout(() => setTracePhase("done"), COL_SLIDE_MS);
-      return () => clearTimeout(t);
-    }
-  }, [tracePhase, hasBeenVisible]);
 
   useEffect(() => {
     if (status !== "playing") return;
@@ -105,140 +116,126 @@ export function FastestFingerGame({
     return () => clearTimeout(timer);
   }, [shakeCell]);
 
-  function handleTap(row: string, col: string) {
-    if (status !== "playing") return;
-    if (row === TARGET_ROW && col === TARGET_COL) {
-      setWon(true);
+  useEffect(() => {
+    if (!correctCell) return;
+    const timer = setTimeout(() => {
+      setCorrectCell(null);
+      setRoundIndex((i) => i + 1);
+    }, CORRECT_FLASH_MS);
+    return () => clearTimeout(timer);
+  }, [correctCell]);
+
+  const currentRound = rounds && !allDone ? rounds[roundIndex] : null;
+  const fromWord = currentRound ? ROWS[currentRound.fromRow] + COLS[currentRound.fromCol] : null;
+
+  function handleTap(rowIndex: number, colIndex: number) {
+    if (status !== "playing" || !currentRound || correctCell) return;
+    const word = ROWS[rowIndex] + COLS[colIndex];
+    if (rowIndex === currentRound.targetRow && colIndex === currentRound.targetCol) {
+      setCorrectCell(word);
     } else {
-      setShakeCell(row + col);
+      setShakeCell(word);
     }
   }
 
   const isRevealed = status === "won" || status === "timeout";
-  const cellsDisabled = status !== "playing";
+  const cellsDisabled = status !== "playing" || !!correctCell;
 
   return (
     <div ref={containerRef} className="rounded-xl bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <p className="text-base font-semibold text-primary">
-          Tap <span className="text-teal">CAT</span> before time runs out.
+          {status === "won" ? (
+            "All 3 found — fast fingers!"
+          ) : status === "timeout" ? (
+            "Time's up — here's the last one."
+          ) : currentRound && fromWord ? (
+            <>
+              Tap the word{" "}
+              <span className="text-teal">{DIRECTION_LABEL[currentRound.direction]}</span>{" "}
+              &ldquo;{fromWord}&rdquo;.
+            </>
+          ) : (
+            "Get ready…"
+          )}
         </p>
-        <CountdownRing
-          secondsLeft={secondsLeft}
-          total={COUNTDOWN_SECONDS}
-          status={status}
-        />
+        <CountdownRing secondsLeft={secondsLeft} total={TOTAL_SECONDS} status={status} />
       </div>
 
+      {rounds && !isRevealed && (
+        <p className="mt-1 text-xs font-semibold tracking-wide text-secondary uppercase">
+          Round {roundIndex + 1} of {ROUND_COUNT}
+        </p>
+      )}
+
       <div
-        className="relative mt-4 grid gap-1.5"
+        className="relative mt-3 grid gap-1.5"
         style={{ gridTemplateColumns: `32px repeat(${COLS.length}, 1fr)` }}
       >
-        {status === "tracing" && hasBeenVisible && (
-          <>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute z-10 rounded-md bg-teal/25 transition-transform ease-out"
-              style={{
-                gridRow: TARGET_GRID_ROW,
-                gridColumn: `1 / ${TARGET_GRID_COL + 1}`,
-                transformOrigin: "left",
-                transform:
-                  tracePhase === "row-pulse" ? "scaleX(0)" : "scaleX(1)",
-                transitionDuration: `${ROW_SLIDE_MS}ms`,
-              }}
-            />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute z-10 rounded-md bg-teal/25 transition-transform ease-out"
-              style={{
-                gridColumn: TARGET_GRID_COL,
-                gridRow: `1 / ${TARGET_GRID_ROW + 1}`,
-                transformOrigin: "top",
-                transform:
-                  tracePhase === "col-slide" ? "scaleY(1)" : "scaleY(0)",
-                transitionDuration: `${COL_SLIDE_MS}ms`,
-              }}
-            />
-          </>
-        )}
-
         <div />
-        {COLS.map((col) => {
-          const isTraceColActive =
-            status === "tracing" &&
-            hasBeenVisible &&
-            col === TARGET_COL &&
-            tracePhase === "col-slide";
-          return (
-            <div
-              key={`col-${col}`}
-              className={`flex items-center justify-center text-sm font-semibold transition-colors ${
-                isTraceColActive ? "text-teal" : "text-secondary"
-              }`}
-            >
-              {col}
+        {COLS.map((col) => (
+          <div
+            key={`col-${col}`}
+            className="flex items-center justify-center text-sm font-semibold text-secondary"
+          >
+            {col}
+          </div>
+        ))}
+
+        {ROWS.map((row, rowIndex) => (
+          <Fragment key={row}>
+            <div className="flex items-center justify-center text-sm font-semibold text-secondary">
+              {row}
             </div>
-          );
-        })}
+            {COLS.map((col, colIndex) => {
+              const word = row + col;
+              const isFrom =
+                !!currentRound &&
+                rowIndex === currentRound.fromRow &&
+                colIndex === currentRound.fromCol;
+              const isTarget =
+                !!currentRound &&
+                rowIndex === currentRound.targetRow &&
+                colIndex === currentRound.targetCol;
+              const showFinalAnswer = status === "timeout" && isTarget;
+              const isWinningCell = correctCell === word;
 
-        {ROWS.map((row) => {
-          const isTraceRowActive =
-            status === "tracing" && hasBeenVisible && row === TARGET_ROW;
-          return (
-            <Fragment key={row}>
-              <div
-                className={`flex items-center justify-center text-sm font-semibold transition-colors ${
-                  isTraceRowActive
-                    ? `text-teal ${tracePhase === "row-pulse" ? "animate-pop-in" : ""}`
-                    : "text-secondary"
-                }`}
-              >
-                {row}
-              </div>
-              {COLS.map((col) => {
-                const word = row + col;
-                const isTarget = row === TARGET_ROW && col === TARGET_COL;
-                const showAnswer = isRevealed && isTarget;
-                const isWinningCell = showAnswer && status === "won";
-                const isTimeoutReveal = showAnswer && status === "timeout";
-                const isInviting = isTarget && status === "playing";
-
-                return (
-                  <button
-                    key={word}
-                    type="button"
-                    onClick={() => handleTap(row, col)}
-                    disabled={cellsDisabled}
-                    className={`relative flex min-h-11 items-center justify-center gap-1 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
-                      shakeCell === word ? "animate-shake" : ""
-                    } ${isInviting ? "animate-gentle-pulse" : ""} ${
-                      shakeCell === word
-                        ? "bg-red-100 text-red-600"
-                        : isWinningCell
-                          ? "animate-pop-in bg-gold text-white shadow-md"
-                          : isTimeoutReveal
-                            ? "bg-teal/10 text-teal shadow-none"
-                            : status === "playing" || status === "tracing"
+              return (
+                <button
+                  key={word}
+                  type="button"
+                  onClick={() => handleTap(rowIndex, colIndex)}
+                  disabled={cellsDisabled}
+                  className={`relative flex min-h-11 items-center justify-center gap-1 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal focus-visible:outline-offset-2 ${
+                    shakeCell === word ? "animate-shake" : ""
+                  } ${
+                    shakeCell === word
+                      ? "bg-red-100 text-red-600"
+                      : isWinningCell
+                        ? "animate-pop-in bg-gold text-white shadow-md"
+                        : showFinalAnswer
+                          ? "bg-teal/10 text-teal shadow-none"
+                          : isFrom && (status === "playing" || status === "waiting")
+                            ? "animate-gentle-pulse bg-teal text-white shadow-md"
+                            : status === "playing" || status === "waiting"
                               ? "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
                               : "bg-inactive text-muted shadow-none"
-                    }`}
-                  >
-                    {word}
-                    {showAnswer && <CheckIcon />}
-                    {isWinningCell && <ConfettiBurst />}
-                  </button>
-                );
-              })}
-            </Fragment>
-          );
-        })}
+                  }`}
+                >
+                  {word}
+                  {showFinalAnswer && <CheckIcon />}
+                  {isWinningCell && <ConfettiBurst />}
+                </button>
+              );
+            })}
+          </Fragment>
+        ))}
       </div>
 
       {isRevealed && (
         <p className="mt-4 animate-fade-in-up text-sm text-secondary">
-          This is a real Module 1 activity. Kids do this every session to
-          build word-recognition speed.
+          This is a real Module 1 activity: call a word, learners find it, then say what&apos;s
+          above, below, left or right of it — fast, confident navigation of the page.
         </p>
       )}
     </div>
@@ -256,11 +253,8 @@ function CountdownRing({
 }) {
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
-  const progress =
-    status === "playing" ? secondsLeft / total : status === "tracing" ? 1 : 0;
-  const displayValue =
-    status === "tracing" ? total : status === "playing" ? secondsLeft : 0;
-  const isUrgent = status === "playing" && secondsLeft <= 2;
+  const progress = status === "playing" ? secondsLeft / total : status === "timeout" ? 0 : 1;
+  const isUrgent = status === "playing" && secondsLeft <= 3;
 
   return (
     <div
@@ -291,7 +285,7 @@ function CountdownRing({
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-primary">
-        {displayValue}
+        {status === "won" ? <CheckIcon /> : status === "timeout" ? 0 : secondsLeft}
       </div>
     </div>
   );
