@@ -226,7 +226,7 @@ function ChallengePath({
       <div className="flex flex-col gap-3">
         <TextPanel tone="before">{BEFORE_TEXT[id]}</TextPanel>
 
-        {interactiveKind && (
+        {interactiveKind && !alreadyPlayed && (
           <div className="flex flex-col gap-2">
             <p className="text-xs font-semibold tracking-wide text-secondary uppercase">
               {INTERACTIVE_LABEL[interactiveKind]}

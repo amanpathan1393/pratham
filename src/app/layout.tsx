@@ -34,17 +34,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             className="flex items-center justify-center gap-6 px-6 py-3 transition-opacity hover:opacity-80"
           >
             <Image
-              src="/images/pratham-logo.png"
-              alt="Pratham — back to home"
-              width={144}
+              src="/images/pradigi-logo.webp"
+              alt="PraDigi — back to home"
+              width={92}
               height={32}
               className="h-8 w-auto"
               priority
             />
             <Image
-              src="/images/pradigi-logo.webp"
-              alt="PraDigi — back to home"
-              width={92}
+              src="/images/pratham-logo.png"
+              alt="Pratham — back to home"
+              width={144}
               height={32}
               className="h-8 w-auto"
               priority

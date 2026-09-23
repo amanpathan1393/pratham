@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { listRowClass } from "@/lib/theme";
 import { FellowIcon, NgoIcon, CuriousIcon, ArrowIcon } from "@/components/PathwayIcons";
@@ -59,8 +60,15 @@ export default function Home() {
         <span className="inline-block animate-soft-pulse rounded-full bg-gold/15 px-3 py-1 text-xs font-bold tracking-wide text-gold uppercase">
           A PraDigi programme
         </span>
-        <h1 className="mx-auto mt-4 inline-block rounded-2xl bg-gold px-6 py-3 text-4xl font-bold tracking-tight text-white shadow-md">
-          Step by Step English
+        <h1 className="mx-auto mt-4">
+          <Image
+            src="/images/step-by-step-logo.png"
+            alt="Step by Step English"
+            width={1166}
+            height={526}
+            className="h-24 w-auto"
+            priority
+          />
         </h1>
         <p className="mt-3 text-xl text-secondary">What brings you here?</p>
       </div>

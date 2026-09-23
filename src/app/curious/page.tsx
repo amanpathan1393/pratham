@@ -90,8 +90,8 @@ export default function CuriousPage() {
           See it in action
         </h1>
         <p className="mt-2 text-secondary">
-          Step by Step English is a structured English programme TFI Fellows run in their own
-          classrooms. Try a few of the real activities learners actually use below.
+          Step by Step English is a structured English programme you can try in your classroom.
+          Try a few of the real activities learners actually use below.
         </p>
       </div>
 
