@@ -11,29 +11,37 @@ const OPTIONS = [
 
 // Fixed (not random) so server and client render identically — individually
 // animated instead of one static tiled image, each drifting on its own
-// offset so the page feels alive without ever covering the heading.
+// offset so the page feels alive without ever covering the heading. Mixes
+// teal and gold so the cluster doesn't read as a flat wash of one color —
+// gold is weighted toward the bottom to echo the gold logo/heading badge.
 const DOODLE_ICONS = [
-  { Icon: BookIcon, style: { top: "5%", left: "6%" }, size: 30, delay: "0s", rotate: 0 },
-  { Icon: PencilIcon, style: { top: "4%", right: "8%" }, size: 28, delay: "1.3s", rotate: 35 },
-  { Icon: StarIcon, style: { top: "2%", left: "46%" }, size: 18, delay: "0.9s", rotate: 0 },
-  { Icon: CapIcon, style: { top: "13%", left: "24%" }, size: 24, delay: "1.6s", rotate: 0 },
-  { Icon: SpeechIcon, style: { top: "9%", right: "30%" }, size: 22, delay: "2.3s", rotate: 0 },
-  { Icon: StarIcon, style: { top: "24%", left: "38%" }, size: 20, delay: "2.1s", rotate: 0 },
-  { Icon: SpeechIcon, style: { top: "30%", right: "4%" }, size: 34, delay: "0.6s", rotate: 0 },
-  { Icon: CapIcon, style: { top: "46%", left: "3%" }, size: 32, delay: "1.8s", rotate: 0 },
-  { Icon: CheckBadgeIcon, style: { top: "62%", right: "6%" }, size: 24, delay: "0.3s", rotate: 0 },
-  { Icon: StarIcon, style: { top: "74%", left: "12%" }, size: 16, delay: "2.5s", rotate: 0 },
-  { Icon: PencilIcon, style: { top: "70%", right: "22%" }, size: 24, delay: "1s", rotate: -20 },
+  { Icon: BookIcon, style: { top: "5%", left: "6%" }, size: 30, delay: "0s", rotate: 0, color: "teal" },
+  { Icon: PencilIcon, style: { top: "4%", right: "8%" }, size: 28, delay: "1.3s", rotate: 35, color: "teal" },
+  { Icon: StarIcon, style: { top: "3%", left: "14%" }, size: 18, delay: "0.9s", rotate: 0, color: "gold" },
+  { Icon: CapIcon, style: { top: "13%", left: "24%" }, size: 24, delay: "1.6s", rotate: 0, color: "teal" },
+  { Icon: SpeechIcon, style: { top: "9%", right: "30%" }, size: 22, delay: "2.3s", rotate: 0, color: "teal" },
+  { Icon: SpeechIcon, style: { top: "26%", left: "8%" }, size: 22, delay: "2.1s", rotate: 0, color: "gold" },
+  { Icon: StarIcon, style: { top: "24%", left: "38%" }, size: 20, delay: "2.1s", rotate: 0, color: "teal" },
+  { Icon: SpeechIcon, style: { top: "30%", right: "4%" }, size: 34, delay: "0.6s", rotate: 0, color: "teal" },
+  { Icon: CapIcon, style: { top: "46%", left: "3%" }, size: 32, delay: "1.8s", rotate: 0, color: "teal" },
+  { Icon: CheckBadgeIcon, style: { top: "58%", left: "17%" }, size: 20, delay: "1.2s", rotate: 0, color: "gold" },
+  { Icon: CheckBadgeIcon, style: { top: "62%", right: "6%" }, size: 24, delay: "0.3s", rotate: 0, color: "teal" },
+  { Icon: StarIcon, style: { top: "74%", left: "12%" }, size: 16, delay: "2.5s", rotate: 0, color: "gold" },
+  { Icon: PencilIcon, style: { top: "70%", right: "22%" }, size: 24, delay: "1s", rotate: -20, color: "teal" },
+  { Icon: StarIcon, style: { top: "88%", left: "30%" }, size: 20, delay: "1.7s", rotate: 0, color: "gold" },
+  { Icon: BookIcon, style: { top: "90%", right: "14%" }, size: 22, delay: "0.4s", rotate: -10, color: "gold" },
 ] as const;
 
 export default function Home() {
   return (
     <main className="relative flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden px-6 py-10">
-      {DOODLE_ICONS.map(({ Icon, style, size, delay, rotate }, i) => (
+      {DOODLE_ICONS.map(({ Icon, style, size, delay, rotate, color }, i) => (
         <span
           key={i}
           aria-hidden="true"
-          className="pointer-events-none absolute animate-float text-teal/30"
+          className={`pointer-events-none absolute animate-float ${
+            color === "gold" ? "text-gold/35" : "text-teal/30"
+          }`}
           style={{
             ...style,
             width: size,

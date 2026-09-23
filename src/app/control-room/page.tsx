@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { CHALLENGES } from "@/lib/challenges";
 
@@ -119,11 +120,22 @@ export default async function ControlRoomPage() {
     <main className="flex flex-1 flex-col bg-[#0b1220] px-6 py-10 text-slate-100">
       <div className="mx-auto flex w-full max-w-6xl flex-col">
         <div>
-          <p className="text-xs font-bold tracking-[0.2em] text-teal uppercase">Internal</p>
+          <div className="inline-block rounded-2xl bg-white px-5 py-3 shadow-lg">
+            <Image
+              src="/images/step-by-step-logo.png"
+              alt="Step by Step English"
+              width={1166}
+              height={526}
+              className="h-9 w-auto"
+            />
+          </div>
+          <p className="mt-5 text-xs font-bold tracking-[0.2em] text-teal uppercase">Internal</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">Control Room</h1>
-          <p className="mt-2 text-slate-400">
-            Live submissions and activity across Fellow, NGO, and Curious. Refreshes on every
-            load.
+          <p className="mt-2 max-w-2xl text-slate-400">
+            This is the internal dashboard for Step by Step English — Fellows, NGOs, and visitors
+            never see this page. It tracks who has submitted through the Fellow, NGO, and Curious
+            pathways, and how people are engaging with the sample activities. Data refreshes every
+            time this page loads.
           </p>
         </div>
 
@@ -184,29 +196,29 @@ export default async function ControlRoomPage() {
           <p className="mt-1 text-sm text-slate-500">
             From completed Fellow submissions only.
           </p>
-          <BarList items={challengeCounts} />
+          <DonutChart items={challengeCounts} totalLabel="picks" />
         </section>
 
         <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <section>
             <SectionTitle title="Class size" />
-            <BarList items={studentCountCounts} />
+            <DonutChart items={studentCountCounts} totalLabel="fellows" />
           </section>
           <section>
             <SectionTitle title="Grades taught" />
-            <BarList items={gradesCounts} />
+            <DonutChart items={gradesCounts} totalLabel="fellows" />
           </section>
           <section>
             <SectionTitle title="What Fellows want next" />
-            <BarList items={helpChoiceCounts} />
+            <DonutChart items={helpChoiceCounts} totalLabel="fellows" />
           </section>
           <section>
             <SectionTitle title="NGO settings of interest" />
-            <BarList items={ngoSettingCounts} />
+            <DonutChart items={ngoSettingCounts} totalLabel="picks" />
           </section>
           <section>
             <SectionTitle title="NGO exploration interests" />
-            <BarList items={ngoInterestCounts} />
+            <DonutChart items={ngoInterestCounts} totalLabel="picks" />
           </section>
         </div>
 
@@ -309,41 +321,90 @@ function PathBadge({ path }: { path: Path }) {
   );
 }
 
-function BarList({ items }: { items: { label: string; count: number }[] }) {
+// Kept distinct from the ring/bar palette so this reads as its own chart
+// family; teal and gold (the brand colors) lead, since the largest slice
+// is usually the most important one to spot first.
+const CHART_PALETTE = ["#1A7F74", "#F2B705", "#E2725B", "#5B8FA8", "#8C6E5B", "#9B7FB8"];
+
+function DonutChart({
+  items,
+  totalLabel,
+}: {
+  items: { label: string; count: number }[];
+  totalLabel: string;
+}) {
   if (items.length === 0) {
     return <p className="mt-4 text-sm text-slate-500">No data yet.</p>;
   }
-  const max = Math.max(...items.map((i) => i.count));
   const total = items.reduce((sum, i) => sum + i.count, 0);
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const segments = items.reduce<{ item: (typeof items)[number]; length: number; offset: number }[]>(
+    (acc, item) => {
+      const fraction = total > 0 ? item.count / total : 0;
+      const length = fraction * circumference;
+      const prevCumulative = acc.length > 0 ? acc[acc.length - 1].offset + acc[acc.length - 1].length : 0;
+      acc.push({ item, length, offset: prevCumulative });
+      return acc;
+    },
+    [],
+  );
+
   return (
-    <div className="mt-4 flex flex-col gap-3">
-      {items.map((item, i) => {
-        const isTop = item.count === max && i === 0;
-        const share = total > 0 ? Math.round((item.count / total) * 100) : 0;
-        return (
-          <div key={item.label}>
-            <div className="flex items-baseline justify-between gap-4 text-sm">
-              <span className="flex items-center gap-2 text-slate-200">
-                {item.label}
-                {isTop && (
-                  <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-gold uppercase">
-                    Most common
-                  </span>
-                )}
+    <div className="mt-4 flex flex-col items-center gap-5 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <div className="relative h-36 w-36 shrink-0">
+        <svg viewBox="0 0 120 120" className="h-36 w-36 -rotate-90">
+          <circle
+            cx="60"
+            cy="60"
+            r={radius}
+            fill="none"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="16"
+          />
+          {segments.map(({ item, length, offset }, i) => {
+            if (length <= 0) return null;
+            return (
+              <circle
+                key={item.label}
+                cx="60"
+                cy="60"
+                r={radius}
+                fill="none"
+                stroke={CHART_PALETTE[i % CHART_PALETTE.length]}
+                strokeWidth="16"
+                strokeDasharray={`${length} ${circumference - length}`}
+                strokeDashoffset={-offset}
+              />
+            );
+          })}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-white">{total}</span>
+          <span className="text-[10px] font-semibold tracking-wide text-slate-400 uppercase">
+            {totalLabel}
+          </span>
+        </div>
+      </div>
+      <div className="flex w-full flex-1 flex-col gap-2">
+        {items.map((item, i) => {
+          const share = total > 0 ? Math.round((item.count / total) * 100) : 0;
+          return (
+            <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
+              <span className="flex min-w-0 items-center gap-2 text-slate-200">
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: CHART_PALETTE[i % CHART_PALETTE.length] }}
+                />
+                <span className="truncate">{item.label}</span>
               </span>
               <span className="shrink-0 font-semibold text-white">
                 {item.count} <span className="font-normal text-slate-500">({share}%)</span>
               </span>
             </div>
-            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/5">
-              <div
-                className={`h-full rounded-full ${isTop ? "bg-gold" : "bg-teal"}`}
-                style={{ width: `${(item.count / max) * 100}%`, transition: "width 0.6s ease" }}
-              />
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
