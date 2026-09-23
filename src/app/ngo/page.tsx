@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { insertSubmission } from "@/lib/submissions";
+import { sendFollowUpEmail } from "@/lib/followUpEmail";
 import { ctaClass, listRowClass } from "@/lib/theme";
 import { Honeypot } from "@/components/Honeypot";
 
@@ -102,6 +103,15 @@ export default function NgoPage() {
         ngo_settings: form.settings,
         ngo_explore: form.interests,
       });
+      // Best-effort; never blocks showing the success screen. Only NGOs
+      // that left an email (not a phone number) get one.
+      if (isEmail) {
+        sendFollowUpEmail({
+          to: contact,
+          subject: "Thanks for your interest in Step by Step English",
+          html: `<p>Hi ${form.yourName},</p><p>Thanks for reaching out about partnering with ${form.orgName} on Step by Step English. We'll follow up soon.</p><p>— Aman</p>`,
+        });
+      }
       setSubmitted(true);
     } catch {
       setSubmitError(true);
