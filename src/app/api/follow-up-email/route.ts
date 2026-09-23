@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
-// "From" a real Pratham address, so this needs Resend (or whatever email
-// provider Pratham uses) to have pratham.org's sending domain verified
-// (SPF/DKIM DNS records) — that's an infra step, not something this route
-// can do on its own. See RESEND_API_KEY in .env.local.example.
-const FROM_EMAIL = "Aman Pathan <aman.pathan@pratham.org>";
+// Sent via a dedicated Gmail account, not aman.pathan@pratham.org directly
+// — Pratham's domain DNS isn't accessible right now, and Gmail SMTP can
+// only send "from" whichever address it authenticated as. Reply-To still
+// points at Aman's real address so replies land in his actual inbox.
+const REPLY_TO = "aman.pathan@pratham.org";
+const DISPLAY_NAME = "Aman Pathan (Step by Step English)";
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+  if (!gmailUser || !gmailAppPassword) {
     // Not configured yet — no-op success so the calling page never shows
     // an error for a feature that simply hasn't been activated.
     return NextResponse.json({ skipped: true });
@@ -29,18 +32,17 @@ export async function POST(req: NextRequest) {
       : "<p>Thanks for your interest — we'll follow up soon.</p>";
 
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: gmailUser, pass: gmailAppPassword },
     });
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      return NextResponse.json({ error: "Email send failed", detail }, { status: 502 });
-    }
+    await transporter.sendMail({
+      from: `"${DISPLAY_NAME}" <${gmailUser}>`,
+      replyTo: REPLY_TO,
+      to,
+      subject,
+      html,
+    });
     return NextResponse.json({ sent: true });
   } catch (err) {
     return NextResponse.json(
