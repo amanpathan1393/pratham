@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { playDing } from "@/lib/sound";
 
 const WHITE_PAINT = "This is a box of white paint.";
 const RAJ_REEMA =
@@ -12,6 +13,7 @@ export function ProgressReveal({ onComplete }: { onComplete?: () => void }) {
   function handleReveal() {
     if (revealed) return;
     setRevealed(true);
+    playDing();
     // Brief pause so the reveal is readable before the path advances.
     setTimeout(() => onComplete?.(), 700);
   }

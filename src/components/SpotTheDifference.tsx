@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ConfettiBurst } from "@/components/ConfettiBurst";
+import { playDing } from "@/lib/sound";
 
 const COUNT = 6;
 const TIME_SECONDS = 8;
@@ -29,9 +31,35 @@ export function SpotTheDifference({
   const [won, setWon] = useState(false);
   const [wrongIndex, setWrongIndex] = useState<number | null>(null);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
+
+  // Don't start the countdown until the card has actually scrolled fully
+  // into view — otherwise the timer burns down (and can time out) while
+  // the visitor is still scrolling toward it.
+  useEffect(() => {
+    if (hasBeenVisible) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setHasBeenVisible(true);
+      },
+      { threshold: 1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasBeenVisible]);
+
   // Derived rather than its own state, same reasoning as FastestFingerGame's
   // status: avoids setting it imperatively from inside the timer effect.
-  const status: "playing" | "won" | "timeout" = won ? "won" : secondsLeft <= 0 ? "timeout" : "playing";
+  const status: "waiting" | "playing" | "won" | "timeout" = won
+    ? "won"
+    : secondsLeft <= 0
+      ? "timeout"
+      : !hasBeenVisible
+        ? "waiting"
+        : "playing";
 
   useEffect(() => {
     if (status !== "playing") return;
@@ -57,15 +85,17 @@ export function SpotTheDifference({
     if (status !== "playing") return;
     if (i === oddIndex) {
       setWon(true);
+      playDing();
     } else {
       setWrongIndex(i);
     }
   }
 
-  const revealed = status !== "playing";
+  const isRevealed = status === "won" || status === "timeout";
+  const cellsDisabled = status !== "playing";
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm">
+    <div ref={containerRef} className="rounded-xl bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <p className="text-base font-semibold text-primary">Spot the flashcard that&apos;s different.</p>
         <div
@@ -75,40 +105,50 @@ export function SpotTheDifference({
               : "border-teal text-teal"
           }`}
         >
-          {status === "playing" ? secondsLeft : status === "won" ? <CheckIcon /> : "…"}
+          {status === "playing" || status === "waiting" ? (
+            secondsLeft
+          ) : status === "won" ? (
+            <CheckIcon />
+          ) : (
+            "…"
+          )}
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         {Array.from({ length: COUNT }).map((_, i) => {
           const isOdd = i === oddIndex;
+          const isWinningTap = won && isOdd;
           return (
             <button
               key={i}
               type="button"
               onClick={() => handleTap(i)}
-              disabled={revealed}
-              className={`flex h-16 items-center justify-center rounded-lg border-2 shadow-sm transition-all duration-200 active:scale-[0.97] ${
+              disabled={cellsDisabled}
+              className={`relative flex h-16 items-center justify-center rounded-lg border-2 shadow-sm transition-all duration-200 active:scale-[0.97] ${
                 wrongIndex === i
                   ? "animate-shake border-red-200 bg-red-100"
-                  : isOdd && revealed
-                    ? "animate-pop-in border-gold bg-gold/20"
-                    : "border-border bg-[#f4f2ec] hover:-translate-y-0.5 hover:border-teal/30 hover:bg-teal/10"
+                  : isWinningTap
+                    ? "animate-pop-in border-gold bg-gold text-white shadow-md"
+                    : isOdd && isRevealed
+                      ? "animate-pop-in border-gold bg-gold/20"
+                      : "border-border bg-[#f4f2ec] hover:-translate-y-0.5 hover:border-teal/30 hover:bg-teal/10"
               }`}
             >
               <span
                 className={`text-lg font-bold tracking-wide ${
-                  isOdd && revealed ? "text-gold" : "text-primary"
+                  isWinningTap ? "text-white" : isOdd && isRevealed ? "text-gold" : "text-primary"
                 }`}
               >
                 {words[i]}
               </span>
+              {isWinningTap && <ConfettiBurst />}
             </button>
           );
         })}
       </div>
 
-      {revealed && (
+      {isRevealed && (
         <p className="mt-4 animate-fade-in-up text-sm text-secondary">
           {status === "won"
             ? `Spotted it — cat, bat, hat, mat, sat all rhyme. "${ODD_WORD}" doesn't.`

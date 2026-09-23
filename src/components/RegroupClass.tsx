@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { playDing } from "@/lib/sound";
 
 const GROUPS = [
   { label: "Level 1", count: 6, dot: "bg-red-400", bg: "bg-red-50" },
@@ -16,6 +17,7 @@ export function RegroupClass({ onComplete }: { onComplete?: () => void }) {
   function handleRegroup() {
     if (regrouped) return;
     setRegrouped(true);
+    playDing();
     setTimeout(() => onComplete?.(), 700);
   }
 

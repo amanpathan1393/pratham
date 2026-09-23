@@ -1,6 +1,8 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
+import { ConfettiBurst } from "@/components/ConfettiBurst";
+import { playDing } from "@/lib/sound";
 
 const ROWS = ["s", "t", "p", "n", "c"] as const;
 const COLS = ["at", "ap", "an"] as const;
@@ -133,6 +135,7 @@ export function FastestFingerGame({
     const word = ROWS[rowIndex] + COLS[colIndex];
     if (rowIndex === currentRound.targetRow && colIndex === currentRound.targetCol) {
       setCorrectCell(word);
+      playDing();
     } else {
       setShakeCell(word);
     }
@@ -189,10 +192,6 @@ export function FastestFingerGame({
             </div>
             {COLS.map((col, colIndex) => {
               const word = row + col;
-              const isFrom =
-                !!currentRound &&
-                rowIndex === currentRound.fromRow &&
-                colIndex === currentRound.fromCol;
               const isTarget =
                 !!currentRound &&
                 rowIndex === currentRound.targetRow &&
@@ -215,11 +214,9 @@ export function FastestFingerGame({
                         ? "animate-pop-in bg-gold text-white shadow-md"
                         : showFinalAnswer
                           ? "bg-teal/10 text-teal shadow-none"
-                          : isFrom && (status === "playing" || status === "waiting")
-                            ? "animate-gentle-pulse bg-teal text-white shadow-md"
-                            : status === "playing" || status === "waiting"
-                              ? "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
-                              : "bg-inactive text-muted shadow-none"
+                          : status === "playing" || status === "waiting"
+                            ? "bg-[#f4f2ec] text-primary hover:-translate-y-0.5 hover:bg-teal/10 hover:shadow-md"
+                            : "bg-inactive text-muted shadow-none"
                   }`}
                 >
                   {word}
@@ -302,35 +299,5 @@ function CheckIcon() {
         strokeLinejoin="round"
       />
     </svg>
-  );
-}
-
-const CONFETTI_PIECES = [
-  { tx: "-18px", ty: "-22px", color: "#1A7F74", delay: "0ms" },
-  { tx: "18px", ty: "-24px", color: "#F2B705", delay: "40ms" },
-  { tx: "-24px", ty: "6px", color: "#F2B705", delay: "80ms" },
-  { tx: "24px", ty: "8px", color: "#1A7F74", delay: "20ms" },
-  { tx: "0px", ty: "-30px", color: "#F2B705", delay: "60ms" },
-  { tx: "-10px", ty: "20px", color: "#1A7F74", delay: "100ms" },
-];
-
-function ConfettiBurst() {
-  return (
-    <span className="pointer-events-none absolute inset-0" aria-hidden="true">
-      {CONFETTI_PIECES.map((piece, i) => (
-        <span
-          key={i}
-          className="animate-confetti absolute top-1/2 left-1/2 h-1.5 w-1.5 rounded-full"
-          style={
-            {
-              backgroundColor: piece.color,
-              animationDelay: piece.delay,
-              "--tx": piece.tx,
-              "--ty": piece.ty,
-            } as React.CSSProperties
-          }
-        />
-      ))}
-    </span>
   );
 }
