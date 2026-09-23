@@ -120,13 +120,13 @@ export default async function ControlRoomPage() {
     <main className="flex flex-1 flex-col bg-[#0b1220] px-6 py-10 text-slate-100">
       <div className="mx-auto flex w-full max-w-6xl flex-col">
         <div>
-          <div className="inline-block rounded-2xl bg-white px-5 py-3 shadow-lg">
+          <div className="inline-block rounded-2xl bg-white px-4 py-2 shadow-lg">
             <Image
               src="/images/step-by-step-logo.png"
               alt="Step by Step English"
               width={1166}
               height={526}
-              className="h-9 w-auto"
+              className="h-14 w-auto"
             />
           </div>
           <p className="mt-5 text-xs font-bold tracking-[0.2em] text-teal uppercase">Internal</p>
