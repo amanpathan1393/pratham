@@ -165,9 +165,12 @@ export default function NgoPage() {
             <li
               key={item}
               className="flex min-h-14 animate-fade-in-up items-center gap-3 rounded-xl bg-white px-4 py-4 shadow-sm"
-              style={{ animationDelay: `${80 + index * 60}ms` }}
+              style={{ animationDelay: `${150 + index * 180}ms` }}
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal text-white">
+              <span
+                className="flex h-5 w-5 shrink-0 animate-pop-in items-center justify-center rounded-full bg-gold text-white"
+                style={{ animationDelay: `${150 + index * 180 + 150}ms` }}
+              >
                 <CheckIcon />
               </span>
               <span className="font-semibold text-primary">{item}</span>

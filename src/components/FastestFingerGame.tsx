@@ -2,13 +2,15 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
-import { playDing } from "@/lib/sound";
+import { playChime } from "@/lib/sound";
 
 const ROWS = ["s", "t", "p", "n", "c"] as const;
 const COLS = ["at", "ap", "an"] as const;
 const TOTAL_SECONDS = 18;
 const ROUND_COUNT = 3;
-const CORRECT_FLASH_MS = 450;
+// Long enough for the confetti burst (700ms) to finish playing before the
+// cell reverts and the next round starts.
+const CORRECT_FLASH_MS = 750;
 
 // This mirrors the actual classroom "Steps for FFF" activity: call out a
 // letter/word, learner finds it, then say what's above/below/left/right of
@@ -135,7 +137,7 @@ export function FastestFingerGame({
     const word = ROWS[rowIndex] + COLS[colIndex];
     if (rowIndex === currentRound.targetRow && colIndex === currentRound.targetCol) {
       setCorrectCell(word);
-      playDing();
+      playChime();
     } else {
       setShakeCell(word);
     }

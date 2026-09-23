@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { playDing } from "@/lib/sound";
+import { playChime } from "@/lib/sound";
 
 const STAGES = [
   { module: "Module 1", prompt: "Hi, I’m Meera." },
@@ -16,7 +16,7 @@ export function SpeakingLadder({ onComplete }: { onComplete?: () => void }) {
     if (revealedCount >= STAGES.length) return;
     const next = revealedCount + 1;
     setRevealedCount(next);
-    playDing();
+    playChime();
     if (next >= STAGES.length) {
       setTimeout(() => onComplete?.(), 700);
     }

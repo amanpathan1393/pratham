@@ -147,19 +147,33 @@ export default async function ControlRoomPage() {
           <p className="mt-1 text-sm text-slate-500">
             All 6 interactives, across Fellow and Curious. {totalActivityPlays} plays total.
           </p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ACTIVITY_ORDER.map((kind) => {
+
+          <p className="mt-6 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+            Right-or-wrong activities
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {ACTIVITY_ORDER.filter((kind) => WIN_LOSE_KINDS.has(kind)).map((kind) => {
               const stats = activityStats(kind);
-              const label = ACTIVITY_LABEL[kind];
-              return WIN_LOSE_KINDS.has(kind) ? (
+              return (
                 <RingCard
                   key={kind}
-                  label={label}
+                  label={ACTIVITY_LABEL[kind]}
                   percent={stats.rate}
-                  sub={`${stats.won} of ${stats.total} won`}
+                  won={stats.won}
+                  total={stats.total}
                 />
-              ) : (
-                <ActivityCountCard key={kind} label={label} count={stats.total} />
+              );
+            })}
+          </div>
+
+          <p className="mt-6 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+            Explore-and-reveal activities
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {ACTIVITY_ORDER.filter((kind) => !WIN_LOSE_KINDS.has(kind)).map((kind) => {
+              const stats = activityStats(kind);
+              return (
+                <ActivityCountCard key={kind} label={ACTIVITY_LABEL[kind]} count={stats.total} />
               );
             })}
           </div>
@@ -300,22 +314,36 @@ function BarList({ items }: { items: { label: string; count: number }[] }) {
     return <p className="mt-4 text-sm text-slate-500">No data yet.</p>;
   }
   const max = Math.max(...items.map((i) => i.count));
+  const total = items.reduce((sum, i) => sum + i.count, 0);
   return (
     <div className="mt-4 flex flex-col gap-3">
-      {items.map((item) => (
-        <div key={item.label}>
-          <div className="flex items-baseline justify-between gap-4 text-sm">
-            <span className="text-slate-200">{item.label}</span>
-            <span className="shrink-0 font-semibold text-white">{item.count}</span>
+      {items.map((item, i) => {
+        const isTop = item.count === max && i === 0;
+        const share = total > 0 ? Math.round((item.count / total) * 100) : 0;
+        return (
+          <div key={item.label}>
+            <div className="flex items-baseline justify-between gap-4 text-sm">
+              <span className="flex items-center gap-2 text-slate-200">
+                {item.label}
+                {isTop && (
+                  <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-gold uppercase">
+                    Most common
+                  </span>
+                )}
+              </span>
+              <span className="shrink-0 font-semibold text-white">
+                {item.count} <span className="font-normal text-slate-500">({share}%)</span>
+              </span>
+            </div>
+            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/5">
+              <div
+                className={`h-full rounded-full ${isTop ? "bg-gold" : "bg-teal"}`}
+                style={{ width: `${(item.count / max) * 100}%`, transition: "width 0.6s ease" }}
+              />
+            </div>
           </div>
-          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/5">
-            <div
-              className="h-full rounded-full bg-teal"
-              style={{ width: `${(item.count / max) * 100}%` }}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -332,10 +360,30 @@ function ActivityCountCard({ label, count }: { label: string; count: number }) {
   );
 }
 
-function RingCard({ label, percent, sub }: { label: string; percent: number; sub: string }) {
+// Turns a bare win-rate number into a read at a glance, rather than making
+// the viewer decide for themselves whether e.g. 55% is good or bad.
+function winRateReading(percent: number, total: number): { text: string; tone: string } {
+  if (total === 0) return { text: "No attempts yet", tone: "text-slate-500" };
+  if (percent >= 70) return { text: "Strong first-try success", tone: "text-emerald-400" };
+  if (percent >= 40) return { text: "Building confidence", tone: "text-gold" };
+  return { text: "Still tricky — may need more repetition", tone: "text-red-400" };
+}
+
+function RingCard({
+  label,
+  percent,
+  won,
+  total,
+}: {
+  label: string;
+  percent: number;
+  won: number;
+  total: number;
+}) {
   const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - percent / 100);
+  const reading = winRateReading(percent, total);
   return (
     <div className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
       <div className="relative h-20 w-20 shrink-0">
@@ -358,6 +406,7 @@ function RingCard({ label, percent, sub }: { label: string; percent: number; sub
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
+            style={{ transition: "stroke-dashoffset 0.6s ease" }}
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">
@@ -366,7 +415,10 @@ function RingCard({ label, percent, sub }: { label: string; percent: number; sub
       </div>
       <div>
         <p className="text-sm font-semibold text-white">{label}</p>
-        <p className="mt-1 text-xs text-slate-400">{sub}</p>
+        <p className="mt-1 text-xs text-slate-400">
+          {won} of {total} won
+        </p>
+        <p className={`mt-1 text-xs font-semibold ${reading.tone}`}>{reading.text}</p>
       </div>
     </div>
   );

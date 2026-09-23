@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
-import { playDing } from "@/lib/sound";
+import { playChime } from "@/lib/sound";
 
 const COUNT = 6;
 const TIME_SECONDS = 8;
@@ -85,7 +85,7 @@ export function SpotTheDifference({
     if (status !== "playing") return;
     if (i === oddIndex) {
       setWon(true);
-      playDing();
+      playChime();
     } else {
       setWrongIndex(i);
     }
