@@ -1,0 +1,60 @@
+/* Experimento back room only (the internal data view). This is the blue
+   graph-paper "lab notebook" look; the public pages use public.css instead.
+   Scoped under .exp-lab and prefixed exp-. */
+
+.exp-lab {
+  --exp-ink: #0a1a33;
+  --exp-ink-soft: #465873;
+  --exp-paper: #eef3f9;
+  --exp-grid: #d5e0ee;
+  --exp-line: #a9b9d0;
+  --exp-blue: #2457f5;
+
+  font-family: var(--font-exp-sans), system-ui, sans-serif;
+  color: var(--exp-ink);
+  background-color: var(--exp-paper);
+  background-image:
+    linear-gradient(var(--exp-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--exp-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.exp-lab :focus-visible {
+  outline: 2px solid var(--exp-blue);
+  outline-offset: 2px;
+}
+
+.exp-mono {
+  font-family: var(--font-exp-mono), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.exp-muted {
+  color: var(--exp-ink-soft);
+}
+
+.exp-card {
+  background: #fff;
+  border: 1.5px solid var(--exp-line);
+  border-radius: 8px;
+}
+
+.exp-fade-up {
+  animation: exp-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes exp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exp-fade-up {
+    animation: none !important;
+  }
+}

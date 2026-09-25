@@ -6,8 +6,15 @@
 // different number, change RESOURCE_COUNT only.
 const RESOURCE_COUNT = "400+";
 
+// The dot colors are the portal's accent palette, used decoratively.
+const DOMAINS = [
+  { label: "Energy", color: "#f7be36" },
+  { label: "Environment", color: "#44bb97" },
+  { label: "Health", color: "#ff318c" },
+  { label: "Mathematics", color: "#007acc" },
+];
+
 const LANGUAGES = ["English", "Hindi", "Marathi", "Tamil", "Kannada"];
-const DOMAINS = ["Energy", "Environment", "Health", "Mathematics"];
 
 const FORMATS = [
   "Activity videos",
@@ -21,64 +28,58 @@ const FORMATS = [
 
 export function ProgrammeFacts() {
   return (
-    <div className="exp-card overflow-hidden">
-      <ul className="exp-spec">
+    <div className="pub-card overflow-hidden">
+      <ul className="pub-facts">
         <li>
-          <span className="exp-mono">Resources</span>
+          <span className="pub-eyebrow">Resources</span>
           <div>
             <p className="text-3xl leading-none font-bold">{RESOURCE_COUNT}</p>
-            <p className="exp-muted mt-1 text-[15px]">open educational resources</p>
+            <p className="pub-muted mt-1 text-[15px]">open educational resources</p>
           </div>
         </li>
         <li>
-          <span className="exp-mono">Domains</span>
+          <span className="pub-eyebrow">Domains</span>
           <div className="flex flex-wrap gap-2">
             {DOMAINS.map((d) => (
-              <span key={d} className="exp-chip">
-                {d}
+              <span key={d.label} className="pub-chip">
+                <i style={{ background: d.color }} />
+                {d.label}
               </span>
             ))}
           </div>
         </li>
         <li>
-          <span className="exp-mono">Languages</span>
+          <span className="pub-eyebrow">Languages</span>
           <div className="flex flex-wrap gap-2">
             {LANGUAGES.map((l) => (
-              <span key={l} className="exp-chip">
+              <span key={l} className="pub-chip">
                 {l}
               </span>
             ))}
           </div>
         </li>
         <li>
-          <span className="exp-mono">Aligned to</span>
-          <p className="text-[15px] font-semibold">NCERT and Maharashtra State syllabus</p>
+          <span className="pub-eyebrow">Aligned to</span>
+          <p className="text-[15px] font-medium">NCERT and Maharashtra State syllabus</p>
         </li>
         <li>
-          <span className="exp-mono">Approach</span>
-          <p className="text-[15px] font-semibold">
+          <span className="pub-eyebrow">Approach</span>
+          <p className="text-[15px] font-medium">
             Inquiry-based and hands-on. Most resources take 3 to 5 minutes.
           </p>
         </li>
         <li>
-          <span className="exp-mono">Formats</span>
-          <div className="flex flex-col gap-1 text-[15px] font-semibold">
+          <span className="pub-eyebrow">Formats</span>
+          <div className="flex flex-col gap-1 text-[15px] font-medium">
             {FORMATS.map((f) => (
               <p key={f}>{f}</p>
             ))}
           </div>
         </li>
         <li>
-          <span className="exp-mono">Works on</span>
-          <p className="text-[15px] font-semibold">
+          <span className="pub-eyebrow">Works on</span>
+          <p className="text-[15px] font-medium">
             Phone, laptop, or printed for low-internet settings.
-          </p>
-        </li>
-        <li>
-          <span className="exp-mono">Built by</span>
-          <p className="text-[15px] font-semibold">
-            An in-house team over 3 years: content creators, translators, voiceover artists, and
-            animators.
           </p>
         </li>
       </ul>

@@ -1,12 +1,5 @@
 -- Experimento India: a SEPARATE Supabase project from the Step by Step English
--- site. Create a new project, then run this once in ITS SQL Editor.
--- Do not run this in the English site's project.
---
--- Then set these in .env.local (dev) and in the Vercel project (production):
---   NEXT_PUBLIC_EXPERIMENTO_SUPABASE_URL=
---   NEXT_PUBLIC_EXPERIMENTO_SUPABASE_PUBLISHABLE_KEY=
--- (Project Settings > API: Project URL and the publishable key.)
--- NEXT_PUBLIC_ vars are baked in at build time, so set them BEFORE deploying.
+-- site. Run this in ITS SQL Editor. Safe to run more than once.
 
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
@@ -19,18 +12,25 @@ create table if not exists public.leads (
   phone text check (phone is null or char_length(phone) <= 40)
 );
 
+-- Fellow-path answers (added after launch). If the table already exists,
+-- `create table if not exists` above does nothing, so these add the columns.
+alter table public.leads
+  add column if not exists subject text check (subject is null or subject in ('science', 'maths')),
+  add column if not exists grades text[],
+  add column if not exists student_count text,
+  add column if not exists challenges text[];
+
 alter table public.leads enable row level security;
 
--- Public-facing form, no login: anyone can insert, nobody can read.
--- No SELECT policy on purpose, so the publishable key can write but never
--- read. Use "to public", not "to anon": the sb_publishable_... key doesn't
--- map to the legacy `anon` role, so "to anon" silently rejects every insert.
+-- Anyone can insert, nobody can read. No SELECT policy on purpose.
+-- "to public", not "to anon": the sb_publishable_... key doesn't map to the
+-- legacy anon role, so "to anon" silently rejects every insert.
+drop policy if exists "Allow public inserts" on public.leads;
 create policy "Allow public inserts"
   on public.leads
   for insert
   to public
   with check (true);
 
--- Read the collected leads afterwards from the Supabase dashboard (Table
--- Editor) or export as CSV. The dashboard uses the service role, which
--- bypasses RLS.
+-- Make the API pick up the new columns immediately.
+notify pgrst, 'reload schema';

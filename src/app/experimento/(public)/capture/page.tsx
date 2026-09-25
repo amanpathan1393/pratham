@@ -3,18 +3,16 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { NEXT_STEPS } from "@/lib/experimento/content";
 import { insertLead } from "@/lib/experimento/leads";
-import { Screen } from "../_components/Screen";
-import { parseOrigin } from "../_components/origin";
-
-const NEXT_STEPS = [
-  "I'd like to try this resource in my classroom",
-  "I want to explore inquiry-based learning and bring it into my classroom",
-  "Just keep me updated",
-];
+import { useAnswers } from "../../_components/answers";
+import { Choice } from "../../_components/Choice";
+import { parseOrigin, progressFor } from "../../_components/origin";
+import { PubScreen } from "../../_components/PubScreen";
 
 function CaptureInner() {
   const from = parseOrigin(useSearchParams().get("from"));
+  const { answers } = useAnswers();
   const [nextStep, setNextStep] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,6 +41,16 @@ function CaptureInner() {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim() || null,
+        // Classroom answers only exist on the Fellow path; other paths must
+        // never pick up stale answers from an earlier run in the same visit.
+        ...(from === "fellow"
+          ? {
+              subject: answers.subject,
+              grades: answers.grades.length ? answers.grades : null,
+              student_count: answers.studentCount,
+              challenges: answers.challenges.length ? answers.challenges : null,
+            }
+          : {}),
       });
       setSubmitted(true);
     } catch (err) {
@@ -55,17 +63,17 @@ function CaptureInner() {
 
   if (submitted) {
     return (
-      <Screen stage={4} showBack={false}>
+      <PubScreen showBack={false}>
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
           <span
-            className="exp-fade-up flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ background: "var(--exp-blue)" }}
+            className="pub-pop flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ background: "var(--pub-gold)" }}
           >
             <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" aria-hidden="true">
               <path
-                className="exp-draw"
+                className="pub-draw"
                 d="M5 12.5l4.5 4.5L19 7.5"
-                stroke="#fff"
+                stroke="#181717"
                 strokeWidth="2.75"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -73,34 +81,34 @@ function CaptureInner() {
             </svg>
           </span>
           <h1
-            className="exp-fade-up text-3xl leading-tight font-bold tracking-tight"
+            className="pub-fade-up text-[28px] leading-tight font-bold tracking-tight"
             style={{ animationDelay: "100ms" }}
           >
             Thanks! We&apos;ll be in touch with what&apos;s next.
           </h1>
           <Link
             href="/experimento"
-            className="exp-fade-up inline-flex min-h-11 items-center px-3 text-sm font-bold underline"
+            className="pub-fade-up inline-flex min-h-11 items-center px-3 text-sm font-semibold underline"
             style={{ animationDelay: "200ms" }}
           >
             Back to start
           </Link>
         </div>
-      </Screen>
+      </PubScreen>
     );
   }
 
   return (
-    <Screen stage={4}>
-      <header className="exp-fade-up">
-        <h1 className="text-3xl leading-tight font-bold tracking-tight">
-          What would you like to do next?
+    <PubScreen progress={progressFor(from, "capture")}>
+      <header className="pub-fade-up">
+        <h1 className="text-[28px] leading-tight font-bold tracking-tight">
+          What would you like to <span className="pub-mark-line">do next</span>?
         </h1>
       </header>
 
       <form
         onSubmit={handleSubmit}
-        className="exp-fade-up flex flex-col gap-5"
+        className="pub-fade-up flex flex-col gap-5"
         style={{ animationDelay: "100ms" }}
       >
         {/* Spam trap: out of layout and tab order. Real visitors never see
@@ -121,32 +129,23 @@ function CaptureInner() {
           />
         </div>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className="sr-only">What would you like to do next?</legend>
+        <div className="flex flex-col gap-2" role="radiogroup" aria-label="What would you like to do next?">
           {NEXT_STEPS.map((option) => (
-            <label key={option} className="relative block">
-              <input
-                type="radio"
-                name="next_step"
-                value={option}
-                checked={nextStep === option}
-                onChange={() => setNextStep(option)}
-                className="exp-option-input"
-              />
-              <span className="exp-card exp-option-box">
-                <span className="exp-option-dot" aria-hidden="true" />
-                <span>{option}</span>
-              </span>
-            </label>
+            <Choice
+              key={option}
+              label={option}
+              selected={nextStep === option}
+              onSelect={() => setNextStep(option)}
+            />
           ))}
-        </fieldset>
+        </div>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-bold">
-            Name <span style={{ color: "var(--exp-blue)" }}>*</span>
+          <span className="text-sm font-semibold">
+            Name <span aria-hidden="true">*</span>
           </span>
           <input
-            className="exp-input"
+            className="pub-input"
             type="text"
             required
             autoComplete="name"
@@ -156,11 +155,11 @@ function CaptureInner() {
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-bold">
-            Email <span style={{ color: "var(--exp-blue)" }}>*</span>
+          <span className="text-sm font-semibold">
+            Email <span aria-hidden="true">*</span>
           </span>
           <input
-            className="exp-input"
+            className="pub-input"
             type="email"
             required
             autoComplete="email"
@@ -170,11 +169,11 @@ function CaptureInner() {
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-bold">
-            Phone <span className="exp-muted font-normal">(optional)</span>
+          <span className="text-sm font-semibold">
+            Phone <span className="pub-muted font-normal">(optional)</span>
           </span>
           <input
-            className="exp-input"
+            className="pub-input"
             type="tel"
             autoComplete="tel"
             value={phone}
@@ -183,16 +182,16 @@ function CaptureInner() {
         </label>
 
         {submitError && (
-          <p role="alert" className="text-sm font-bold" style={{ color: "#b42318" }}>
+          <p role="alert" className="text-sm font-semibold" style={{ color: "#b42318" }}>
             Something went wrong, try again.
           </p>
         )}
 
-        <button type="submit" disabled={!isValid || isSubmitting} className="exp-btn exp-btn-primary">
+        <button type="submit" disabled={!isValid || isSubmitting} className="pub-btn">
           {isSubmitting ? "Submitting…" : "Submit"}
         </button>
       </form>
-    </Screen>
+    </PubScreen>
   );
 }
 

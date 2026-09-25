@@ -6,3 +6,15 @@ import type { Origin } from "@/lib/experimento/leads";
 export function parseOrigin(value: string | null): Origin {
   return value === "fellow" || value === "ngo" ? value : "curious";
 }
+
+const FLOW: Record<Origin, string[]> = {
+  fellow: ["challenges", "about", "classroom", "try", "capture"],
+  curious: ["about", "try", "capture"],
+  ngo: ["partner", "capture"],
+};
+
+// Position of a screen within the path the visitor is on, for the progress bar.
+export function progressFor(origin: Origin, screen: string) {
+  const flow = FLOW[origin];
+  return { step: flow.indexOf(screen) + 1, total: flow.length };
+}
