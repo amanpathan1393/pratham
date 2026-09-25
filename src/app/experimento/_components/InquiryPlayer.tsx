@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import { playChime } from "@/lib/sound";
 import { Choice } from "./Choice";
 
@@ -114,72 +114,69 @@ function RampScene({ predicted, onDone }: SceneProps) {
   );
 }
 
-/* ------------------------------- Maths scene ------------------------------- */
+/* ------------------------------ Fractions scene ----------------------------- */
 
-const LAYER_COLORS = [
-  "#f7be36",
-  "#44bb97",
-  "#ff318c",
-  "#007acc",
-  "#f7be36",
-  "#44bb97",
-  "#ff318c",
-  "#007acc",
-];
-const MAX_LAYERS = 8;
+const PARTS = [2, 3, 4, 6, 8];
 
-function OddScene({ predicted, onDone }: SceneProps) {
-  const [n, setN] = useState(0);
+// Every bar is the same whole. Tapping one cuts it into equal parts and
+// shrinks the shaded piece to show a single part, so the learner can see
+// (and compare) how the size of one part changes as the cuts increase.
+function FractionScene({ predicted, onDone }: SceneProps) {
+  const [cut, setCut] = useState<number[]>([]);
 
-  function add() {
-    if (n >= MAX_LAYERS) return;
-    const next = n + 1;
-    setN(next);
-    if (next === 4) onDone();
+  function doCut(d: number) {
+    setCut((prev) => (prev.includes(d) ? prev : [...prev, d]));
   }
 
-  const odds = Array.from({ length: n }, (_, i) => 2 * i + 1);
+  // Three different bars cut is enough to compare and move on.
+  const enough = cut.length >= 3;
+  useEffect(() => {
+    if (enough) onDone();
+  }, [enough, onDone]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="mx-auto w-full max-w-[220px]" style={{ minHeight: 24 }}>
-        {n > 0 && (
-          <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
-            {Array.from({ length: n * n }, (_, k) => {
-              const r = Math.floor(k / n);
-              const c = k % n;
-              const layer = Math.max(r, c);
-              return (
-                <span
-                  key={`${r}-${c}`}
-                  className={`pub-cell ${layer === n - 1 ? "pub-pop" : ""}`}
-                  style={{ background: LAYER_COLORS[layer] }}
-                />
-              );
-            })}
-          </div>
-        )}
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2">
+        <span className="w-[62px] shrink-0 text-xs font-semibold">1 whole</span>
+        <div className="pub-frac" aria-hidden="true">
+          <span className="pub-frac-piece" style={{ width: "100%" }} />
+        </div>
+        <span className="w-9 shrink-0" />
       </div>
-      <p className="text-center text-sm font-semibold">
-        {n === 0 ? "Tap to add the first odd number" : `${odds.join(" + ")} = ${n * n}`}
-      </p>
-      {n > 0 && (
-        <p className="pub-muted text-center text-xs">
-          {n} × {n} square
-        </p>
-      )}
-      <button
-        type="button"
-        className="pub-btn pub-btn-quiet"
-        onClick={add}
-        disabled={n >= MAX_LAYERS}
-      >
-        {n >= MAX_LAYERS ? "That's 8 layers" : `Add the next odd number (${2 * n + 1})`}
-      </button>
-      {n >= 4 && (
+      {PARTS.map((d) => {
+        const isCut = cut.includes(d);
+        return (
+          <div key={d} className="flex items-center gap-2">
+            <span className="w-[62px] shrink-0 text-xs font-semibold">{d} parts</span>
+            <button
+              type="button"
+              className="pub-frac"
+              onClick={() => doCut(d)}
+              aria-label={
+                isCut ? `One of ${d} equal parts is shaded` : `Cut the whole into ${d} equal parts`
+              }
+            >
+              <span className="pub-frac-piece" style={{ width: isCut ? `${100 / d}%` : "100%" }} />
+              {Array.from({ length: d - 1 }, (_, k) => (
+                <span
+                  key={k}
+                  className="pub-frac-line"
+                  style={{ left: `${((k + 1) / d) * 100}%`, opacity: isCut ? 1 : 0 }}
+                />
+              ))}
+              {!isCut && <span className="pub-frac-hint">Tap to cut into {d} equal parts</span>}
+            </button>
+            <span className="w-9 shrink-0 text-xs font-bold">
+              {isCut && <span className="pub-fade-up">1/{d}</span>}
+            </span>
+          </div>
+        );
+      })}
+      {enough && (
         <p className="pub-notice pub-fade-up" data-tone="info">
-          {predicted ? `You predicted ${predicted}. ` : ""}
-          The first four odd numbers add up to 16.
+          {predicted ? `You predicted "${predicted}". ` : ""}
+          Compare the shaded pieces. The whole stays the same size, but the more parts we cut it
+          into, the smaller each part gets.
         </p>
       )}
     </div>
@@ -246,45 +243,49 @@ export const EXPERIMENTS: Record<"science" | "maths", InquiryStep[]> = {
     {
       kind: "predict",
       stage: "Engage",
-      prompt: "Add the first four odd numbers: 1 + 3 + 5 + 7. What do you think you get?",
-      options: ["12", "16", "20"],
-      answer: 1,
+      prompt:
+        "Two rotis of the same size. One is shared equally among 3 friends, the other among 4 friends. Who gets the bigger piece?",
+      options: ["Each of the 3 friends", "Each of the 4 friends", "Both get the same"],
+      answer: 0,
     },
     {
       kind: "explore",
       stage: "Explore",
-      prompt: "Build it. Each tap adds the next odd number as a new layer.",
-      Scene: OddScene,
+      prompt: "Cut the same whole into more and more equal parts. Tap at least three bars and compare the shaded piece.",
+      Scene: FractionScene,
     },
     {
       kind: "check",
       stage: "Explain",
-      prompt: "What pattern do you notice in the totals?",
+      prompt: "What pattern do you see?",
       options: [
-        "Every total is a square number: 1, 4, 9, 16...",
-        "Every total is an even number",
-        "The total doubles each time",
+        "More equal parts means each part is smaller",
+        "More equal parts means each part is bigger",
+        "The size of a part doesn't change",
       ],
       answer: 0,
-      right: "Yes. Adding the next odd number always completes a bigger square.",
-      hint: "Look at the shape the layers make.",
+      right:
+        "Yes. The whole stays the same size, so cutting it into more equal parts makes each part smaller. That's why 1/3 is bigger than 1/4.",
+      hint: "Compare the shaded piece in the 2 parts bar with the one in the 8 parts bar.",
     },
     {
       kind: "predict",
       stage: "Elaborate",
-      prompt: "What would the first 10 odd numbers add up to?",
-      options: ["55", "100", "20"],
+      prompt: "Which is bigger, 3/8 or 1/2?",
+      options: ["3/8", "1/2", "They are equal"],
       answer: 1,
-      reveal: "It's 10 × 10 = 100. Ten layers make a 10 by 10 square.",
+      reveal:
+        "1/2 is the same as 4/8, which is more than 3/8. Half of the bar is longer than three eighths of it.",
     },
     {
       kind: "check",
       stage: "Evaluate",
-      prompt: "1 + 3 + 5 + 7 + 9 + 11 = ?",
-      options: ["30", "36", "42"],
-      answer: 1,
-      right: "Right. Six layers make a 6 × 6 square, so the total is 36.",
-      hint: "How many odd numbers are being added? That is the side of the square.",
+      prompt: "Which is the biggest piece?",
+      options: ["1/8", "1/5", "1/3"],
+      answer: 2,
+      right:
+        "Right. Thirds are the biggest here, because the whole is cut into the fewest parts.",
+      hint: "Which whole is cut into the fewest equal parts?",
     },
   ],
 };

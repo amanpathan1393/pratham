@@ -32,6 +32,12 @@ export const CHALLENGES = [
 export const SUBJECTS = [
   { id: "science", label: "Science", emphasis: "Explore energy, environment, and health concepts hands-on" },
   { id: "maths", label: "Maths", emphasis: "Make abstract concepts concrete through inquiry" },
+  {
+    id: "both",
+    label: "Both",
+    emphasis:
+      "Explore energy, environment, and health concepts hands-on, and make abstract concepts concrete through inquiry",
+  },
 ] as const;
 
 export const GRADES = ["6", "7", "8", "9", "10"] as const;

@@ -7,7 +7,7 @@ import { useCallback, useSyncExternalStore } from "react";
 // otherwise (private mode), so a blocked storage never breaks the flow.
 export type Answers = {
   challenges: string[];
-  subject: "science" | "maths" | null;
+  subject: "science" | "maths" | "both" | null;
   grades: string[];
   studentCount: string | null;
 };

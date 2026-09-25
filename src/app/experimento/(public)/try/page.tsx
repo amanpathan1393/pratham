@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { SUBJECTS } from "@/lib/experimento/content";
 import { useAnswers } from "../../_components/answers";
 import { EXPERIMENTS, InquiryPlayer } from "../../_components/InquiryPlayer";
 import { parseOrigin, progressFor } from "../../_components/origin";
@@ -12,20 +11,45 @@ import type { Origin } from "@/lib/experimento/leads";
 
 type Subject = "science" | "maths";
 
+const LABEL: Record<Subject, string> = { science: "Science", maths: "Maths" };
+const OTHER: Record<Subject, Subject> = { science: "maths", maths: "science" };
+
 // Owns the finished state so switching subject (which remounts this via its
 // key) starts a fresh run.
-function Session({ subject, from }: { subject: Subject; from: Origin }) {
+function Session({
+  subject,
+  from,
+  canSwitch,
+  onSwitch,
+}: {
+  subject: Subject;
+  from: Origin;
+  canSwitch: boolean;
+  onSwitch: (s: Subject) => void;
+}) {
   const [finished, setFinished] = useState(false);
+  const capture = `/experimento/capture?from=${from}`;
   return (
     <>
       <InquiryPlayer steps={EXPERIMENTS[subject]} onFinish={() => setFinished(true)} />
       {finished ? (
-        <Link href={`/experimento/capture?from=${from}`} className="pub-btn pub-fade-up">
-          Continue
-        </Link>
+        <div className="pub-fade-up flex flex-col gap-3">
+          <Link href={capture} className="pub-btn">
+            Continue
+          </Link>
+          {canSwitch && (
+            <button
+              type="button"
+              className="pub-btn pub-btn-quiet"
+              onClick={() => onSwitch(OTHER[subject])}
+            >
+              Try the {LABEL[OTHER[subject]]} inquiry too
+            </button>
+          )}
+        </div>
       ) : (
         <Link
-          href={`/experimento/capture?from=${from}`}
+          href={capture}
           className="pub-muted -mt-2 inline-flex min-h-11 items-center justify-center text-sm font-semibold underline"
         >
           Skip to the next step
@@ -38,8 +62,14 @@ function Session({ subject, from }: { subject: Subject; from: Origin }) {
 function TryInner() {
   const from = parseOrigin(useSearchParams().get("from"));
   const { answers } = useAnswers();
-  const [tab, setTab] = useState<Subject | null>(null);
-  const subject: Subject = tab ?? answers.subject ?? "science";
+  const [chosen, setChosen] = useState<Subject | null>(null);
+
+  // Someone who teaches one subject goes straight to it. Those who teach
+  // both (and curious visitors, who haven't told us) choose which to explore.
+  const fixed: Subject | null =
+    answers.subject === "science" || answers.subject === "maths" ? answers.subject : null;
+  const subject = fixed ?? chosen;
+  const canSwitch = fixed === null;
 
   return (
     <PubScreen progress={progressFor(from, "try")}>
@@ -53,22 +83,46 @@ function TryInner() {
         </p>
       </header>
 
-      <div className="flex gap-2" role="radiogroup" aria-label="Subject">
-        {SUBJECTS.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            role="radio"
-            aria-checked={subject === s.id}
-            onClick={() => setTab(s.id)}
-            className="pub-pill flex-1"
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      {canSwitch && (
+        <section>
+          <p className="pub-eyebrow mb-2">
+            {answers.subject === "both"
+              ? "You teach both. Which would you like to explore?"
+              : "Which would you like to explore?"}
+          </p>
+          <div className="flex gap-2" role="radiogroup" aria-label="Inquiry to explore">
+            {(Object.keys(LABEL) as Subject[]).map((s) => (
+              <button
+                key={s}
+                type="button"
+                role="radio"
+                aria-checked={subject === s}
+                onClick={() => setChosen(s)}
+                className="pub-pill flex-1"
+              >
+                {LABEL[s]}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <Session key={subject} subject={subject} from={from} />
+      {subject ? (
+        <Session
+          key={subject}
+          subject={subject}
+          from={from}
+          canSwitch={canSwitch}
+          onSwitch={setChosen}
+        />
+      ) : (
+        <Link
+          href={`/experimento/capture?from=${from}`}
+          className="pub-muted -mt-2 inline-flex min-h-11 items-center justify-center text-sm font-semibold underline"
+        >
+          Skip to the next step
+        </Link>
+      )}
     </PubScreen>
   );
 }

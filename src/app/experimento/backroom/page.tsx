@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { CHALLENGES } from "@/lib/experimento/content";
 import { getExperimentoAdmin } from "@/lib/experimento/admin";
 
@@ -21,14 +20,6 @@ type LeadRow = {
 
 const PALETTE = ["#2457f5", "#0891b2", "#f59e0b", "#10b981", "#e11d48", "#7c3aed"];
 
-function keyMatches(given: string | undefined) {
-  const expected = process.env.EXPERIMENTO_ADMIN_KEY;
-  if (!expected || !given) return false;
-  const a = Buffer.from(given);
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 function tally(values: (string | null | undefined)[]) {
   const counts = new Map<string, number>();
   for (const v of values) {
@@ -40,25 +31,11 @@ function tally(values: (string | null | undefined)[]) {
     .map(([label, count]) => ({ label, count }));
 }
 
-export default async function BackRoomPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ key?: string | string[] }>;
-}) {
-  const { key } = await searchParams;
+function subjectLabel(v: string) {
+  return v === 'both' ? 'Both subjects' : v.charAt(0).toUpperCase() + v.slice(1);
+}
 
-  if (!process.env.EXPERIMENTO_ADMIN_KEY) {
-    return (
-      <Notice
-        title="Back room is not set up"
-        body="Set EXPERIMENTO_ADMIN_KEY and EXPERIMENTO_SUPABASE_SERVICE_ROLE_KEY in the environment, then open this page with ?key=YOUR_KEY."
-      />
-    );
-  }
-  if (!keyMatches(typeof key === "string" ? key : undefined)) {
-    return <Notice title="Not authorised" body="Open this page with the correct ?key= in the address." />;
-  }
-
+export default async function BackRoomPage() {
   let leads: LeadRow[] = [];
   let loadError: string | null = null;
   try {
@@ -85,7 +62,7 @@ export default async function BackRoomPage({
         <h1 className="mt-2 text-4xl font-bold tracking-tight">Experimento back room</h1>
         <p className="exp-muted mt-2 max-w-2xl">
           Everyone who left their details through the Experimento stall page. Refreshes on every
-          load. Not linked from anywhere, and locked behind a key.
+          load. Not linked from anywhere.
         </p>
       </header>
 
@@ -116,7 +93,13 @@ export default async function BackRoomPage({
           />
         </Panel>
         <Panel title="Subject" note="Fellows">
-          <Donut items={tally(fellows.map((l) => l.subject))} unit="fellows" />
+          <Donut
+            items={tally(fellows.map((l) => l.subject)).map((t) => ({
+              label: subjectLabel(t.label),
+              count: t.count,
+            }))}
+            unit="fellows"
+          />
         </Panel>
         <Panel title="Grades taught" note="Fellows, can pick several">
           <Donut
@@ -163,7 +146,7 @@ export default async function BackRoomPage({
                   </td>
                   <td className="exp-muted px-4 py-3">
                     {[
-                      l.subject,
+                      l.subject ? subjectLabel(l.subject) : null,
                       l.grades?.length ? `Grades ${l.grades.join(", ")}` : null,
                       l.student_count ? `${l.student_count} students` : null,
                       l.next_step,
@@ -184,15 +167,6 @@ export default async function BackRoomPage({
           </table>
         </div>
       </section>
-    </main>
-  );
-}
-
-function Notice({ title, body }: { title: string; body: string }) {
-  return (
-    <main className="mx-auto max-w-md py-16 text-center">
-      <h1 className="text-2xl font-bold">{title}</h1>
-      <p className="exp-muted mt-2">{body}</p>
     </main>
   );
 }

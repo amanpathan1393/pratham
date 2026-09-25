@@ -39,9 +39,11 @@ function getClient(): SupabaseClient {
   return client;
 }
 
-// PostgREST: unknown column in the schema cache. Postgres: undefined_column.
-function isMissingColumn(error: { code?: string }) {
-  return error.code === "PGRST204" || error.code === "42703";
+// The extra columns can be rejected two ways: the column doesn't exist yet
+// (PostgREST PGRST204 / Postgres 42703, table not migrated), or the subject
+// check constraint rejects a value it hasn't been updated to allow (23514).
+function isExtrasRejected(error: { code?: string }) {
+  return error.code === "PGRST204" || error.code === "42703" || error.code === "23514";
 }
 
 export async function insertLead(lead: LeadInsert) {
@@ -51,7 +53,7 @@ export async function insertLead(lead: LeadInsert) {
 
   // If the extra columns haven't been added to the table yet, save the lead
   // with the original columns rather than losing it.
-  if (isMissingColumn(error)) {
+  if (isExtrasRejected(error)) {
     const { path, next_step, name, email, phone } = lead;
     const retry = await db.from("leads").insert({ path, next_step, name, email, phone });
     if (!retry.error) return;

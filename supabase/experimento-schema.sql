@@ -12,13 +12,17 @@ create table if not exists public.leads (
   phone text check (phone is null or char_length(phone) <= 40)
 );
 
--- Fellow-path answers (added after launch). If the table already exists,
--- `create table if not exists` above does nothing, so these add the columns.
+-- Fellow-path answers (added after launch). `create table if not exists`
+-- above does nothing on an existing table, so these add the columns.
 alter table public.leads
-  add column if not exists subject text check (subject is null or subject in ('science', 'maths')),
+  add column if not exists subject text,
   add column if not exists grades text[],
   add column if not exists student_count text,
   add column if not exists challenges text[];
+
+alter table public.leads drop constraint if exists leads_subject_check;
+alter table public.leads add constraint leads_subject_check
+  check (subject is null or subject in ('science', 'maths', 'both'));
 
 alter table public.leads enable row level security;
 

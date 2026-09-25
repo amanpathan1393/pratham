@@ -39,7 +39,7 @@ export default function ClassroomPage() {
               role="radio"
               aria-checked={answers.subject === s.id}
               onClick={() => update({ subject: s.id })}
-              className="pub-pill flex-1"
+              className="pub-pill flex-1 !px-2"
             >
               {s.label}
             </button>

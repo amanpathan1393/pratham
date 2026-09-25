@@ -343,9 +343,49 @@
   box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15);
 }
 
-.pub-cell {
-  aspect-ratio: 1;
-  border-radius: 3px;
+/* Fraction bars: one whole, tap to cut it into equal parts */
+.pub-frac {
+  position: relative;
+  display: block;
+  flex: 1;
+  height: 40px;
+  padding: 0;
+  border: 2px solid var(--pub-ink);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: inherit;
+}
+button.pub-frac:hover {
+  border-color: var(--pub-gold);
+}
+.pub-frac-piece {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--pub-gold);
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pub-frac-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--pub-ink);
+  transition: opacity 0.5s ease 0.15s;
+}
+.pub-frac-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pub-ink);
 }
 
 .pub-notice {
@@ -430,7 +470,9 @@
     animation: none !important;
     stroke-dashoffset: 0;
   }
-  .pub-ball {
+  .pub-ball,
+  .pub-frac-piece,
+  .pub-frac-line {
     transition: none !important;
   }
   .pub-btn,
