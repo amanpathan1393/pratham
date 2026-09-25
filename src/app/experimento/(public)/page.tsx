@@ -13,21 +13,29 @@ const DOMAIN_DOTS = ["#f7be36", "#44bb97", "#ff318c", "#007acc"];
 export default function ExperimentoLanding() {
   return (
     <PubScreen showBack={false}>
-      <div className="pub-fade-up flex items-center justify-center gap-6">
+      <div className="pub-fade-up grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <Image
-          src="/images/pradigi-logo-new.png"
-          alt="PraDigi"
-          width={580}
-          height={422}
-          className="h-16 w-auto"
+          src="/images/siemens-stiftung-logo.png"
+          alt="Siemens Stiftung"
+          width={361}
+          height={50}
+          className="h-auto w-full max-w-[132px]"
           priority
         />
         <Image
-          src="/images/pratham-logo-new.png"
+          src="/images/pratham-stacked-logo.png"
           alt="Pratham"
-          width={630}
-          height={422}
-          className="h-16 w-auto"
+          width={200}
+          height={177}
+          className="h-auto w-[68px]"
+          priority
+        />
+        <Image
+          src="/images/siemens-logo.png"
+          alt="Siemens"
+          width={1134}
+          height={180}
+          className="h-auto w-full max-w-[100px] justify-self-end"
           priority
         />
       </div>
