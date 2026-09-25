@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PubScreen } from "../_components/PubScreen";
 
@@ -12,7 +13,26 @@ const DOMAIN_DOTS = ["#f7be36", "#44bb97", "#ff318c", "#007acc"];
 export default function ExperimentoLanding() {
   return (
     <PubScreen showBack={false}>
-      <header className="pub-fade-up mt-6">
+      <div className="pub-fade-up flex items-center justify-center gap-6">
+        <Image
+          src="/images/pradigi-logo-new.png"
+          alt="PraDigi"
+          width={580}
+          height={422}
+          className="h-16 w-auto"
+          priority
+        />
+        <Image
+          src="/images/pratham-logo-new.png"
+          alt="Pratham"
+          width={630}
+          height={422}
+          className="h-16 w-auto"
+          priority
+        />
+      </div>
+
+      <header className="pub-fade-up" style={{ animationDelay: "60ms" }}>
         <div className="mb-4 flex gap-1.5" aria-hidden="true">
           {DOMAIN_DOTS.map((c) => (
             <span key={c} className="h-2.5 w-8 rounded-full" style={{ background: c }} />
