@@ -18,6 +18,7 @@ function Tick() {
 // "single" like a radio (aria-checked, the parent supplies role="radiogroup").
 export function Choice({
   label,
+  hint,
   selected,
   onSelect,
   mode = "single",
@@ -25,6 +26,7 @@ export function Choice({
   disabled,
 }: {
   label: string;
+  hint?: string;
   selected: boolean;
   onSelect: () => void;
   mode?: "single" | "multi";
@@ -47,7 +49,10 @@ export function Choice({
       <span className="pub-mark" data-shape={mode === "single" ? "circle" : "square"}>
         {selected && <Tick />}
       </span>
-      <span>{label}</span>
+      <span>
+        <span className="block">{label}</span>
+        {hint && <span className="pub-muted mt-0.5 block text-[13px] font-normal">{hint}</span>}
+      </span>
     </button>
   );
 }
